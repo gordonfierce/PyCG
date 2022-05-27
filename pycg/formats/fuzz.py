@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020 Vitalis Salis.
+# Copyright (c) 2022 Ada Logics ltd.
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
