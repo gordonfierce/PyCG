@@ -21,7 +21,9 @@
 class CallGraph(object):
     def __init__(self):
         self.cg = {}
+        self.cg_extended = {}
         self.modnames = {}
+        self.ep = None
 
     def add_node(self, name, modname=""):
         if not isinstance(name, str):
@@ -31,18 +33,29 @@ class CallGraph(object):
 
         if not name in self.cg:
             self.cg[name] = set()
+            self.cg_extended[name] = list()
             self.modnames[name] = modname
 
         if name in self.cg and not self.modnames[name]:
             self.modnames[name] = modname
 
-    def add_edge(self, src, dest):
+    def add_edge(self, src, dest, lineno=-1):
         self.add_node(src)
         self.add_node(dest)
         self.cg[src].add(dest)
 
+        self.cg_extended[src].append(
+            {
+                "dst": dest,
+                "lineno": lineno
+            }
+        )
+
     def get(self):
         return self.cg
+
+    def get_extended(self):
+        return self.cg_extended
 
     def get_edges(self):
         output = []
@@ -53,6 +66,10 @@ class CallGraph(object):
 
     def get_modules(self):
         return self.modnames
+
+    def add_entrypoint(self, ep, modname=""):
+        self.ep = ep
+        self.ep_mod = modname
 
 
 class CallGraphError(Exception):

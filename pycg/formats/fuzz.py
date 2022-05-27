@@ -18,7 +18,25 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-from .fasten import Fasten
-from .simple import Simple
-from .fuzz import Fuzz
-from .as_graph import AsGraph
+from .base import BaseFormatter
+
+class Fuzz(BaseFormatter):
+    def __init__(self, cg_generator):
+        self.cg_generator = cg_generator
+
+    def generate(self):
+        output = self.cg_generator.cg.get_extended()
+
+        #output = self.cg_generator.output()
+        output_cg = {}
+        for node in output:
+            output_cg[node] = list(output[node])
+
+        res = {}
+
+        res['cg'] = output_cg
+        res['ep'] = {
+            "name" : self.cg_generator.cg.ep,
+            "mod"  : self.cg_generator.cg.ep_mod 
+        }
+        return res

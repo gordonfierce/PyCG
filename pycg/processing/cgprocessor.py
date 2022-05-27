@@ -45,6 +45,7 @@ class CallGraphProcessor(ProcessingBase):
         self.closured = self.def_manager.transitive_closure()
 
     def visit_Module(self, node):
+        print("Visiting module %s"%(self.modname))
         self.call_graph.add_node(self.modname, self.modname)
         super().visit_Module(node)
 
@@ -113,10 +114,10 @@ class CallGraphProcessor(ProcessingBase):
         super().visit_FunctionDef(node)
 
     def visit_Call(self, node):
-        def create_ext_edge(name, ext_modname):
+        def create_ext_edge(name, ext_modname, e_lineno=-1):
             self.add_ext_mod_node(name)
             self.call_graph.add_node(name, ext_modname)
-            self.call_graph.add_edge(self.current_method, name)
+            self.call_graph.add_edge(self.current_method, name, lineno=e_lineno)
 
         # First visit the child function so that on the case of
         #       func()()()
@@ -130,16 +131,40 @@ class CallGraphProcessor(ProcessingBase):
         self.visit(node.func)
 
         names = self.retrieve_call_names(node)
+        print("Iterating node with line number: %d"%(node.lineno))
+        try:
+            print("- %s"%(node.func.id))
+            print("- Arguments: %s"%(str(node.args)))
+        except:
+            print("- %s.%s"%(node.func.value.id, node.func.attr))
+            print("%s"%(str(node.args)))
+            for elem in node.args:
+                #print("%s"%(str(elem)))
+                try:
+                    print("%s"%(str(elem.id)))
+                except:
+                    None
+            None
+        # Go through the arguments
+        if ( isinstance(node.func, ast.Attribute) and
+             node.func.value.id == "atheris" and 
+             node.func.attr == "Setup"):
+            # Get the target function
+            target_func = node.args[1].id
+            self.call_graph.add_entrypoint(target_func, self.modname)
+            print("We have the set up function here")
+            print("Target func: %s"%(target_func))
+
         if not names:
             if isinstance(node.func, ast.Attribute) and self.has_ext_parent(node.func):
                 # TODO: This doesn't work for cases where there is an assignment of an attribute
                 # i.e. import os; lala = os.path; lala.dirname()
                 for name in self.get_full_attr_names(node.func):
                     ext_modname = name.split(".")[0]
-                    create_ext_edge(name, ext_modname)
+                    create_ext_edge(name, ext_modname, node.lineno)
             elif getattr(node.func, "id", None) and self.is_builtin(node.func.id):
                 name = utils.join_ns(utils.constants.BUILTIN_NAME, node.func.id)
-                create_ext_edge(name, utils.constants.BUILTIN_NAME)
+                create_ext_edge(name, utils.constants.BUILTIN_NAME, node.lineno)
             return
 
         self.last_called_names = names
@@ -150,9 +175,9 @@ class CallGraphProcessor(ProcessingBase):
             if pointer_def.is_callable():
                 if pointer_def.get_type() == utils.constants.EXT_DEF:
                     ext_modname = pointer.split(".")[0]
-                    create_ext_edge(pointer, ext_modname)
+                    create_ext_edge(pointer, ext_modname, node.lineno)
                     continue
-                self.call_graph.add_edge(self.current_method, pointer)
+                self.call_graph.add_edge(self.current_method, pointer, lineno=node.lineno)
 
                 # TODO: This doesn't work and leads to calls from the decorators
                 #    themselves to the function, creating edges to the first decorator
@@ -166,7 +191,7 @@ class CallGraphProcessor(ProcessingBase):
                 init_ns = self.find_cls_fun_ns(pointer, utils.constants.CLS_INIT)
 
                 for ns in init_ns:
-                    self.call_graph.add_edge(self.current_method, ns)
+                    self.call_graph.add_edge(self.current_method, ns, lineno=node.lineno)
 
     def analyze_submodules(self):
         super().analyze_submodules(CallGraphProcessor, self.import_manager,
