@@ -33,28 +33,36 @@ class CallGraph(object):
 
         if not name in self.cg:
             self.cg[name] = set()
-            self.cg_extended[name] = list()
+            self.cg_extended[name] = dict()
+            self.cg_extended[name]['dsts'] = []
+            self.cg_extended[name]['meta'] = dict()
+            self.cg_extended[name]['meta']['modname'] = modname
             self.modnames[name] = modname
 
         if name in self.cg and not self.modnames[name]:
             self.modnames[name] = modname
 
-    def add_edge(self, src, dest, lineno=-1):
+    def add_edge(self, src, dest, lineno=-1, mod="", ext_mod=""):
         self.add_node(src)
         self.add_node(dest)
         self.cg[src].add(dest)
 
-        self.cg_extended[src].append(
+        print("Adding edge")
+        self.cg_extended[src]['dsts'].append(
             {
                 "dst": dest,
-                "lineno": lineno
+                "lineno": lineno,
+                "mod" : mod,
+                "ext_mod" : ext_mod
             }
         )
+        print(self.cg_extended[src])
 
     def get(self):
         return self.cg
 
     def get_extended(self):
+        print("Extended cg: %s"%(str(self.cg_extended)))
         return self.cg_extended
 
     def get_edges(self):

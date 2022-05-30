@@ -63,9 +63,9 @@ class CallGraphProcessor(ProcessingBase):
                 iter_ns = utils.join_ns(name, utils.constants.ITER_METHOD)
                 next_ns = utils.join_ns(name, utils.constants.NEXT_METHOD)
                 if self.def_manager.get(iter_ns):
-                    self.call_graph.add_edge(self.current_method, iter_ns)
+                    self.call_graph.add_edge(self.current_method, iter_ns, mod=self.modname)
                 if self.def_manager.get(next_ns):
-                    self.call_graph.add_edge(self.current_method, next_ns)
+                    self.call_graph.add_edge(self.current_method, next_ns, mod=self.modname)
 
         super().visit_For(node)
 
@@ -92,9 +92,9 @@ class CallGraphProcessor(ProcessingBase):
                 if pointer_def.get_type() == utils.constants.CLS_DEF:
                     init_ns = self.find_cls_fun_ns(name, utils.constants.CLS_INIT)
                     for ns in init_ns:
-                        self.call_graph.add_edge(self.current_method, ns)
+                        self.call_graph.add_edge(self.current_method, ns, mod=self.modname)
                 if pointer_def.get_type() == utils.constants.EXT_DEF:
-                    self.call_graph.add_edge(self.current_method, name)
+                    self.call_graph.add_edge(self.current_method, name, mod=self.modname)
 
     def visit_AsyncFunctionDef(self, node):
         self.visit_FunctionDef(node)
@@ -108,16 +108,17 @@ class CallGraphProcessor(ProcessingBase):
                     continue
                 names = self.closured.get(d.get_ns(), [])
                 for name in names:
-                    self.call_graph.add_edge(self.current_method, name)
+                    self.call_graph.add_edge(self.current_method, name, mod=self.modname)
 
         self.call_graph.add_node(utils.join_ns(self.current_ns, node.name), self.modname)
+        self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['lineno'] = node.lineno
         super().visit_FunctionDef(node)
 
     def visit_Call(self, node):
-        def create_ext_edge(name, ext_modname, e_lineno=-1):
+        def create_ext_edge(name, ext_modname, e_lineno=-1, mod=""):
             self.add_ext_mod_node(name)
             self.call_graph.add_node(name, ext_modname)
-            self.call_graph.add_edge(self.current_method, name, lineno=e_lineno)
+            self.call_graph.add_edge(self.current_method, name, lineno=e_lineno, mod=mod, ext_mod=ext_modname)
 
         # First visit the child function so that on the case of
         #       func()()()
@@ -136,8 +137,11 @@ class CallGraphProcessor(ProcessingBase):
             print("- %s"%(node.func.id))
             print("- Arguments: %s"%(str(node.args)))
         except:
-            print("- %s.%s"%(node.func.value.id, node.func.attr))
-            print("%s"%(str(node.args)))
+            try:
+                print("- %s.%s"%(node.func.value.id, node.func.attr))
+                print("%s"%(str(node.args)))
+            except:
+                None
             for elem in node.args:
                 #print("%s"%(str(elem)))
                 try:
@@ -145,27 +149,44 @@ class CallGraphProcessor(ProcessingBase):
                 except:
                     None
             None
+        print("D1")
         # Go through the arguments
-        if ( isinstance(node.func, ast.Attribute) and
-             node.func.value.id == "atheris" and 
-             node.func.attr == "Setup"):
-            # Get the target function
-            target_func = node.args[1].id
-            self.call_graph.add_entrypoint(target_func, self.modname)
-            print("We have the set up function here")
-            print("Target func: %s"%(target_func))
-
+        try:
+            if ( isinstance(node.func, ast.Attribute) and
+                 node.func.value.id == "atheris" and 
+                 node.func.attr == "Setup"
+            ):
+                # Get the target function
+                target_func = node.args[1].id
+                self.call_graph.add_entrypoint(target_func, self.modname)
+                print("We have the set up function here")
+                print("Target func: %s"%(target_func))
+        except:
+            None
         if not names:
+            print("D2")
+            print(str(node))
             if isinstance(node.func, ast.Attribute) and self.has_ext_parent(node.func):
+                print("D3")
                 # TODO: This doesn't work for cases where there is an assignment of an attribute
                 # i.e. import os; lala = os.path; lala.dirname()
                 for name in self.get_full_attr_names(node.func):
                     ext_modname = name.split(".")[0]
-                    create_ext_edge(name, ext_modname, node.lineno)
+                    create_ext_edge(name, ext_modname, node.lineno, self.modname)
             elif getattr(node.func, "id", None) and self.is_builtin(node.func.id):
+                print("D4")
                 name = utils.join_ns(utils.constants.BUILTIN_NAME, node.func.id)
-                create_ext_edge(name, utils.constants.BUILTIN_NAME, node.lineno)
+                create_ext_edge(name, utils.constants.BUILTIN_NAME, node.lineno, self.modname)
+            elif isinstance(node.func, ast.Attribute):
+                print("It is actually an attribute")
+                print(str(node.func.value))
+                print(ast.dump(node))
+                print("-----------------")
+                print(ast.dump(node.func.value))
+                print("-----------------")
+            print("D2.1")
             return
+        print("D6")
 
         self.last_called_names = names
         for pointer in names:
@@ -175,9 +196,9 @@ class CallGraphProcessor(ProcessingBase):
             if pointer_def.is_callable():
                 if pointer_def.get_type() == utils.constants.EXT_DEF:
                     ext_modname = pointer.split(".")[0]
-                    create_ext_edge(pointer, ext_modname, node.lineno)
+                    create_ext_edge(pointer, ext_modname, node.lineno, self.modname)
                     continue
-                self.call_graph.add_edge(self.current_method, pointer, lineno=node.lineno)
+                self.call_graph.add_edge(self.current_method, pointer, lineno=node.lineno, mod=self.modname)
 
                 # TODO: This doesn't work and leads to calls from the decorators
                 #    themselves to the function, creating edges to the first decorator
@@ -191,7 +212,8 @@ class CallGraphProcessor(ProcessingBase):
                 init_ns = self.find_cls_fun_ns(pointer, utils.constants.CLS_INIT)
 
                 for ns in init_ns:
-                    self.call_graph.add_edge(self.current_method, ns, lineno=node.lineno)
+                    print("D7")
+                    self.call_graph.add_edge(self.current_method, ns, lineno=node.lineno, mod=self.modname)
 
     def analyze_submodules(self):
         super().analyze_submodules(CallGraphProcessor, self.import_manager,

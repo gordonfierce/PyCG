@@ -30,7 +30,7 @@ class Fuzz(BaseFormatter):
         #output = self.cg_generator.output()
         output_cg = {}
         for node in output:
-            output_cg[node] = list(output[node])
+            output_cg[node] = output[node]#list(output[node])
 
         res = {}
 
