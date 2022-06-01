@@ -72,6 +72,9 @@ class ProcessingBase(ast.NodeVisitor):
         self.method_stack.pop()
         self.name_stack.pop()
 
+    #def visit_Expr(self, node):
+    #    self.visit(node)
+
     def visit_Lambda(self, node, lambda_name=None):
         lambda_ns = utils.join_ns(self.current_ns, lambda_name)
         if not self.scope_manager.get_scope(lambda_ns):

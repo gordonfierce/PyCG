@@ -33,7 +33,7 @@ class CallGraphProcessor(ProcessingBase):
         super().__init__(filename, modname, modules_analyzed)
         # parent directory of file
         self.parent_dir = os.path.dirname(filename)
-
+        self.current_node_name = None
         self.import_manager = import_manager
         self.scope_manager = scope_manager
         self.def_manager = def_manager
@@ -132,9 +132,41 @@ class CallGraphProcessor(ProcessingBase):
         self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['argCount'] = len(arg_names)
         self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['argNames'] = arg_names
         self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['argTypes'] = arg_types
+        self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['ifCount'] = 0
+        self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['exprCount'] = 0
+        self.current_node_name = node.name
 
 
         super().visit_FunctionDef(node)
+
+    def visit_If(self, node):
+        #print("TTT: %s%s"%(str(self.current_ns), str(self.current_node_name)))
+        #FTS="%s%s"%(str(self.current_ns), str(self.current_node_name))
+        FTS="%s"%(str(self.current_ns))
+        print("Checking: %s"%(FTS))
+        print("Checking2: %s"%(utils.join_ns(self.current_ns, self.current_node_name)))
+
+        if (
+            self.current_node_name != None and
+            FTS in self.call_graph.cg_extended
+        ):
+            try:
+                self.call_graph.cg_extended[FTS]['meta']['ifCount'] += 1
+            except:
+                self.call_graph.cg_extended[FTS]['meta']['ifCount'] = 1
+
+        self.generic_visit(node)
+
+    def visit_Expr(self, node):
+        #print("Visiting expr")
+        FTS="%s"%(str(self.current_ns))
+        if FTS in self.call_graph.cg_extended:
+            try:
+                self.call_graph.cg_extended[FTS]['meta']['exprCount'] += 1
+            except:
+                self.call_graph.cg_extended[FTS]['meta']['exprCount'] = 1
+        self.generic_visit(node)
+    #    #super().visit_Expr(node)
 
     def visit_Call(self, node):
         def create_ext_edge(name, ext_modname, e_lineno=-1, mod=""):
