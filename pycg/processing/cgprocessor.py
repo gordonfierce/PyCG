@@ -112,6 +112,28 @@ class CallGraphProcessor(ProcessingBase):
 
         self.call_graph.add_node(utils.join_ns(self.current_ns, node.name), self.modname)
         self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['lineno'] = node.lineno
+        arg_names = []
+        arg_count = 0
+        if node.args.args != None:
+            for arg in node.args.args:
+                arg_names.append(arg.arg)
+        if node.args.vararg != None:
+            arg_names.append(node.args.vararg.arg)
+        if node.args.kwonlyargs != None:
+            for arg in node.args.kwonlyargs:
+                arg_names.append(arg.arg)
+        if node.args.kwarg != None:
+            arg_names.append(node.args.kwarg.arg)
+
+        arg_types = []
+        for arg_name in arg_names:
+            arg_types.append("N/A")
+        print("Setting callgraph to: %d"%(arg_count))
+        self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['argCount'] = len(arg_names)
+        self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['argNames'] = arg_names
+        self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['argTypes'] = arg_types
+
+
         super().visit_FunctionDef(node)
 
     def visit_Call(self, node):

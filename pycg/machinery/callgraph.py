@@ -62,7 +62,7 @@ class CallGraph(object):
         return self.cg
 
     def get_extended(self):
-        print("Extended cg: %s"%(str(self.cg_extended)))
+        #print("Extended cg: %s"%(str(self.cg_extended)))
         return self.cg_extended
 
     def get_edges(self):
