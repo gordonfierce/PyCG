@@ -33,6 +33,9 @@ def get_int_name(counter):
     return "<int{}>".format(counter)
 
 def join_ns(*args):
+    for arg in args:
+        if arg == None:
+            return
     return ".".join([arg for arg in args])
 
 def to_mod_name(name, package=None):
