@@ -186,7 +186,7 @@ class CallGraphProcessor(ProcessingBase):
         self.visit(node.func)
 
         names = self.retrieve_call_names(node)
-        print("Iterating node with line number: %d"%(node.lineno))
+        print("Iterating node with line number2: %d"%(node.lineno))
         try:
             print("- %s"%(node.func.id))
             print("- Arguments: %s"%(str(node.args)))
@@ -238,6 +238,19 @@ class CallGraphProcessor(ProcessingBase):
                 print("-----------------")
                 print(ast.dump(node.func.value))
                 print("-----------------")
+                try:
+                    a1 = node.func.value.value.id
+                    a2 = node.func.value.attr
+                    a3 = node.func.attr
+                    print("Got it: %s -- %s -- %s"%(a1, a2, a3)) 
+                    # Skip selfs for now. Down the line we probably want to fix this as well, but
+                    # will wait with doing this. Most likely a larger rewrite is needed once
+                    # I fully grasp what we need.
+                    if a1 != "self":
+                        name = "%s.%s.%s"%(a1,a2,a3)
+                        create_ext_edge(name, utils.constants.BUILTIN_NAME, node.lineno, self.modname)
+                except:
+                    print("Did not get it")
             print("D2.1")
             return
         print("D6")
