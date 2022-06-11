@@ -161,7 +161,7 @@ class CallGraphGenerator(object):
         #try:
         # TODO: I REVERSED THE FALSE TO TRUE BECAUSE INSTALLING HOOKS CAUSED A LOT
         # OF ISSUES. THIS SHOULD BE FURTHER INSPECTED.
-        self.do_pass(PreProcessor, False,
+        self.do_pass(PreProcessor, True,
                 self.import_manager, self.scope_manager, self.def_manager,
                 self.class_manager, self.module_manager)
         #except AttributeError:
