@@ -29,6 +29,7 @@ class KeyErrProcessor(ProcessingBase):
     def __init__(self, filename, modname, import_manager,
             scope_manager, def_manager, class_manager, key_errs, modules_analyzed=None):
         super().__init__(filename, modname, modules_analyzed)
+        print("K1")
         # parent directory of file
         self.parent_dir = os.path.dirname(filename)
 
@@ -42,6 +43,7 @@ class KeyErrProcessor(ProcessingBase):
         self.state = "keyerr"
 
     def visit_Subscript(self, node):
+        print("K2")
         self.visit(node.value)
         self.visit(node.slice)
         names = self.retrieve_subscript_names(node)
@@ -60,21 +62,25 @@ class KeyErrProcessor(ProcessingBase):
                     key=splitted[-1])
 
     def is_subscriptable(self, name):
+        print("K3")
         if re.match(r".*<dict[0-9]+>.*", name):
             return True
 
         return False
 
     def analyze_submodules(self):
+        print("K4")
         super().analyze_submodules(KeyErrProcessor, self.import_manager,
                 self.scope_manager, self.def_manager, self.class_manager,
                 self.key_errs, modules_analyzed=self.get_modules_analyzed())
 
     def analyze(self):
+        print("K5")
         self.visit(ast.parse(self.contents, self.filename))
         self.analyze_submodules()
 
     def visit_Lambda(self, node):
+        print("K6")
         counter = self.scope_manager.get_scope(self.current_ns).inc_lambda_counter()
         lambda_name = utils.get_lambda_name(counter)
         lambda_fullns = utils.join_ns(self.current_ns, lambda_name)

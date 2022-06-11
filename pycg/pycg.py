@@ -140,11 +140,17 @@ class CallGraphGenerator(object):
 
             if not input_mod in modules_analyzed:
                 if install_hooks:
+                    print("Installing hooks")
                     self.import_manager.set_pkg(input_pkg)
                     self.import_manager.install_hooks()
-
+                else:
+                    print("Not installing hooks")
+                print("Running analysis on: %s"%(input_file))
+                print("Input mod: %s"%(input_mod))
+                print("Input pkg: %s"%(input_pkg))
                 processor = cls(input_file, input_mod,
                                 modules_analyzed=modules_analyzed, *args, **kwargs)
+                print("Done analysis-123")
                 processor.analyze()
                 modules_analyzed = modules_analyzed.union(processor.get_modules_analyzed())
 
@@ -152,9 +158,16 @@ class CallGraphGenerator(object):
                     self.remove_import_hooks()
 
     def analyze(self):
-        self.do_pass(PreProcessor, True,
+        #try:
+        # TODO: I REVERSED THE FALSE TO TRUE BECAUSE INSTALLING HOOKS CAUSED A LOT
+        # OF ISSUES. THIS SHOULD BE FURTHER INSPECTED.
+        self.do_pass(PreProcessor, False,
                 self.import_manager, self.scope_manager, self.def_manager,
                 self.class_manager, self.module_manager)
+        #except AttributeError:
+        #    self.do_pass(PreProcessor, False,
+        #            self.import_manager, self.scope_manager, self.def_manager,
+        #            self.class_manager, self.module_manager)
         self.def_manager.complete_definitions()
 
         iter_cnt = 0

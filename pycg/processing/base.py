@@ -20,6 +20,8 @@
 #
 import ast
 import os
+import sys
+import traceback
 
 from pycg import utils
 from pycg.machinery.definitions import Definition
@@ -33,28 +35,41 @@ class ProcessingBase(ast.NodeVisitor):
 
         self.filename = os.path.abspath(filename)
 
-        with open(filename, "rt") as f:
-            self.contents = f.read()
+        print("Opening: %s"%(filename))
+        ff = open(filename, "rt")
+        self.contents = ff.read()
+        #try:
+        #    with open(filename, "rt") as f:
+        #        self.contents = f.read()
+        #except Exception as e:
+        #    print(traceback.format_exc())
+        #    print(sys.exc_info()[2])
+        #    raise e
 
         self.name_stack = []
         self.method_stack = []
         self.last_called_names = None
 
     def get_modules_analyzed(self):
+        print("VM1")
         return self.modules_analyzed
 
     def merge_modules_analyzed(self, analyzed):
+        print("VM2")
         self.modules_analyzed = self.modules_analyzed.union(analyzed)
 
     @property
     def current_ns(self):
+        print("VM3")
         return ".".join(self.name_stack)
 
     @property
     def current_method(self):
+        print("VM4")
         return ".".join(self.method_stack)
 
     def visit_Module(self, node):
+        print("VM5")
         self.name_stack.append(self.modname)
         self.method_stack.append(self.modname)
         self.scope_manager.get_scope(self.modname).reset_counters()
@@ -63,6 +78,7 @@ class ProcessingBase(ast.NodeVisitor):
         self.name_stack.pop()
 
     def visit_FunctionDef(self, node):
+        print("VM6")
         self.name_stack.append(node.name)
         self.method_stack.append(node.name)
         if self.scope_manager.get_scope(self.current_ns):
@@ -76,6 +92,7 @@ class ProcessingBase(ast.NodeVisitor):
     #    self.visit(node)
 
     def visit_Lambda(self, node, lambda_name=None):
+        print("VM7")
         lambda_ns = utils.join_ns(self.current_ns, lambda_name)
         if not self.scope_manager.get_scope(lambda_ns):
             self.scope_manager.create_scope(lambda_ns,
@@ -87,10 +104,12 @@ class ProcessingBase(ast.NodeVisitor):
         self.name_stack.pop()
 
     def visit_For(self, node):
+        print("VM8")
         for item in node.body:
             self.visit(item)
 
     def visit_Dict(self, node):
+        print("VM9")
         counter = self.scope_manager.get_scope(self.current_ns).inc_dict_counter()
         dict_name = utils.get_dict_name(counter)
 
@@ -107,6 +126,7 @@ class ProcessingBase(ast.NodeVisitor):
         self.name_stack.pop()
 
     def visit_List(self, node):
+        print("VM10")
         counter = self.scope_manager.get_scope(self.current_ns).inc_list_counter()
         list_name = utils.get_list_name(counter)
 
@@ -120,10 +140,12 @@ class ProcessingBase(ast.NodeVisitor):
         self.name_stack.pop()
 
     def visit_BinOp(self, node):
+        print("VM11")
         self.visit(node.left)
         self.visit(node.right)
 
     def visit_ClassDef(self, node):
+        print("VM12")
         self.name_stack.append(node.name)
         self.method_stack.append(node.name)
         self.scope_manager.get_scope(self.current_ns).reset_counters()
@@ -133,10 +155,12 @@ class ProcessingBase(ast.NodeVisitor):
         self.name_stack.pop()
 
     def visit_Tuple(self, node):
+        print("VM13")
         for elt in node.elts:
             self.visit(elt)
 
     def _handle_assign(self, targetns, decoded):
+        print("VM14")
         defi = self.def_manager.get(targetns)
         if not defi:
             defi = self.def_manager.create(targetns, utils.constants.NAME_DEF)
@@ -155,6 +179,7 @@ class ProcessingBase(ast.NodeVisitor):
         return defi
 
     def _visit_return(self, node):
+        print("VM15")
         if not node or not node.value:
             return
 
@@ -164,6 +189,7 @@ class ProcessingBase(ast.NodeVisitor):
         self._handle_assign(return_ns, self.decode_node(node.value))
 
     def _get_target_ns(self, target):
+        print("VM16")
         if isinstance(target, ast.Name):
             return [utils.join_ns(self.current_ns, target.id)]
         if isinstance(target, ast.Attribute):
@@ -177,6 +203,7 @@ class ProcessingBase(ast.NodeVisitor):
         return []
 
     def _visit_assign(self, value, targets):
+        print("VM17")
         self.visit(value)
 
         decoded = self.decode_node(value)
@@ -200,6 +227,7 @@ class ProcessingBase(ast.NodeVisitor):
             do_assign(decoded, target)
 
     def decode_node(self, node):
+        print("VM18")
         if isinstance(node, ast.Name):
             return [self.scope_manager.get_def(self.current_ns, node.id)]
         elif isinstance(node, ast.Call):
@@ -273,9 +301,11 @@ class ProcessingBase(ast.NodeVisitor):
         return []
 
     def _is_literal(self, item):
+        print("VM19")
         return isinstance(item, int) or isinstance(item, str) or isinstance(item, float)
 
     def _retrieve_base_names(self, node):
+        print("VM20")
         if not isinstance(node, ast.Attribute):
             raise Exception("The node is not an attribute")
 
@@ -302,6 +332,7 @@ class ProcessingBase(ast.NodeVisitor):
 
 
     def _retrieve_parent_names(self, node):
+        print("VM21")
         if not isinstance(node, ast.Attribute):
             raise Exception("The node is not an attribute")
 
@@ -320,6 +351,7 @@ class ProcessingBase(ast.NodeVisitor):
         return names
 
     def _retrieve_attribute_names(self, node):
+        print("VM23")
         if not getattr(self, "closured", None):
             return set()
 
@@ -348,6 +380,7 @@ class ProcessingBase(ast.NodeVisitor):
         return names
 
     def iterate_call_args(self, defi, node):
+        print("VM24")
         for pos, arg in enumerate(node.args):
             self.visit(arg)
             decoded = self.decode_node(arg)
@@ -396,6 +429,7 @@ class ProcessingBase(ast.NodeVisitor):
                         defi.get_name_pointer().add_lit_arg(keyword.arg, d)
 
     def retrieve_subscript_names(self, node):
+        print("VM25")
         if not isinstance(node, ast.Subscript):
             raise Exception("The node is not an subcript")
 
@@ -442,6 +476,7 @@ class ProcessingBase(ast.NodeVisitor):
         return full_names
 
     def retrieve_call_names(self, node):
+        print("VM26")
         names = set()
         if isinstance(node.func, ast.Name):
             defi = self.scope_manager.get_def(self.current_ns, node.func.id)
@@ -468,12 +503,14 @@ class ProcessingBase(ast.NodeVisitor):
         return names
 
     def analyze_submodules(self, cls, *args, **kwargs):
+        print("VM27")
         imports = self.import_manager.get_imports(self.modname)
 
         for imp in imports:
             self.analyze_submodule(cls, imp, *args, **kwargs)
 
     def analyze_submodule(self, cls, imp, *args, **kwargs):
+        print("VM29")
         if imp in self.get_modules_analyzed():
             return
 
@@ -491,6 +528,7 @@ class ProcessingBase(ast.NodeVisitor):
         self.import_manager.set_current_mod(self.modname, self.filename)
 
     def find_cls_fun_ns(self, cls_name, fn):
+        print("VM30")
         cls = self.class_manager.get(cls_name)
         if not cls:
             return set()
@@ -517,6 +555,7 @@ class ProcessingBase(ast.NodeVisitor):
         return ext_names
 
     def add_ext_mod_node(self, name):
+        print("VM31")
         ext_modname = name.split(".")[0]
         ext_mod = self.module_manager.get(ext_modname)
         if not ext_mod:

@@ -24,6 +24,7 @@ class ModuleManager:
         self.external = {}
 
     def create(self, name, fname, external=False):
+        print("M1")
         mod = Module(name, fname)
         if external:
             self.external[name] = mod
@@ -32,33 +33,41 @@ class ModuleManager:
         return mod
 
     def get(self, name):
+        print("M2")
         if name in self.internal:
             return self.internal[name]
         if name in self.external:
             return self.external[name]
 
     def get_internal_modules(self):
+        print("M3")
         return self.internal
 
     def get_external_modules(self):
+        print("M4")
         return self.external
 
 class Module:
     def __init__(self, name, filename):
+        print("M5")
         self.name = name
         self.filename = filename
         self.methods = dict()
 
     def get_name(self):
+        print("M6")
         return self.name
 
     def get_filename(self):
+        print("M7")
         return self.filename
 
     def get_methods(self):
+        print("M8")
         return self.methods
 
     def add_method(self, method, first=None, last=None):
+        print("M9")
         if not self.methods.get(method, None):
             self.methods[method] = dict(
                     name=method,

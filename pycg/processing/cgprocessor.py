@@ -30,6 +30,7 @@ class CallGraphProcessor(ProcessingBase):
     def __init__(self, filename, modname, import_manager,
             scope_manager, def_manager, class_manager,
             module_manager, call_graph=None, modules_analyzed=None):
+        print("C1")
         super().__init__(filename, modname, modules_analyzed)
         # parent directory of file
         self.parent_dir = os.path.dirname(filename)
@@ -45,11 +46,13 @@ class CallGraphProcessor(ProcessingBase):
         self.closured = self.def_manager.transitive_closure()
 
     def visit_Module(self, node):
+        print("C1")
         print("Visiting module %s"%(self.modname))
         self.call_graph.add_node(self.modname, self.modname)
         super().visit_Module(node)
 
     def visit_For(self, node):
+        print("C1")
         self.visit(node.iter)
         self.visit(node.target)
         # assign target.id to the return value of __next__ of node.iter.it
@@ -70,6 +73,7 @@ class CallGraphProcessor(ProcessingBase):
         super().visit_For(node)
 
     def visit_Lambda(self, node):
+        print("C1")
         counter = self.scope_manager.get_scope(self.current_ns).inc_lambda_counter()
         lambda_name = utils.get_lambda_name(counter)
         lambda_fullns = utils.join_ns(self.current_ns, lambda_name)
@@ -79,6 +83,7 @@ class CallGraphProcessor(ProcessingBase):
         super().visit_Lambda(node, lambda_name)
 
     def visit_Raise(self, node):
+        print("C1")
         if not node.exc:
             return
         self.visit(node.exc)
@@ -97,9 +102,11 @@ class CallGraphProcessor(ProcessingBase):
                     self.call_graph.add_edge(self.current_method, name, mod=self.modname)
 
     def visit_AsyncFunctionDef(self, node):
+        print("C1")
         self.visit_FunctionDef(node)
 
     def visit_FunctionDef(self, node):
+        print("C1")
         for decorator in node.decorator_list:
             self.visit(decorator)
             decoded = self.decode_node(decorator)
@@ -140,6 +147,7 @@ class CallGraphProcessor(ProcessingBase):
         super().visit_FunctionDef(node)
 
     def visit_If(self, node):
+        print("C1")
         #print("TTT: %s%s"%(str(self.current_ns), str(self.current_node_name)))
         #FTS="%s%s"%(str(self.current_ns), str(self.current_node_name))
         FTS="%s"%(str(self.current_ns))
@@ -158,6 +166,7 @@ class CallGraphProcessor(ProcessingBase):
         self.generic_visit(node)
 
     def visit_Expr(self, node):
+        print("C1")
         #print("Visiting expr")
         FTS="%s"%(str(self.current_ns))
         if FTS in self.call_graph.cg_extended:
@@ -169,6 +178,7 @@ class CallGraphProcessor(ProcessingBase):
     #    #super().visit_Expr(node)
 
     def visit_Call(self, node):
+        print("C1")
         def create_ext_edge(name, ext_modname, e_lineno=-1, mod=""):
             self.add_ext_mod_node(name)
             self.call_graph.add_node(name, ext_modname)
@@ -283,15 +293,18 @@ class CallGraphProcessor(ProcessingBase):
                     self.call_graph.add_edge(self.current_method, ns, lineno=node.lineno, mod=self.modname)
 
     def analyze_submodules(self):
+        print("C1")
         super().analyze_submodules(CallGraphProcessor, self.import_manager,
                 self.scope_manager, self.def_manager, self.class_manager, self.module_manager,
                 call_graph=self.call_graph, modules_analyzed=self.get_modules_analyzed())
 
     def analyze(self):
+        print("C1")
         self.visit(ast.parse(self.contents, self.filename))
         self.analyze_submodules()
 
     def get_all_reachable_functions(self):
+        print("C1")
         reachable = set()
         names = set()
         current_scope = self.scope_manager.get_scope(self.current_ns)
@@ -307,6 +320,7 @@ class CallGraphProcessor(ProcessingBase):
         return reachable
 
     def has_ext_parent(self, node):
+        print("C1")
         if not isinstance(node, ast.Attribute):
             return False
 
@@ -321,6 +335,7 @@ class CallGraphProcessor(ProcessingBase):
         return False
 
     def get_full_attr_names(self, node):
+        print("C1")
         name = ""
         while isinstance(node, ast.Attribute):
             if not name:
@@ -341,4 +356,5 @@ class CallGraphProcessor(ProcessingBase):
         return names
 
     def is_builtin(self, name):
+        print("C1")
         return name in __builtins__
