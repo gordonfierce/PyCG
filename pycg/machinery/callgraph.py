@@ -33,10 +33,12 @@ class CallGraph(object):
 
         if not name in self.cg:
             self.cg[name] = set()
-            self.cg_extended[name] = dict()
-            self.cg_extended[name]['dsts'] = []
-            self.cg_extended[name]['meta'] = dict()
-            self.cg_extended[name]['meta']['modname'] = modname
+            self.cg_extended[name] = {
+                'dsts' : [],
+                'meta' : {
+                    'modename' : modname
+                }
+            }
             self.modnames[name] = modname
 
         if name in self.cg and not self.modnames[name]:
