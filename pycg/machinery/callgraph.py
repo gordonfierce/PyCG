@@ -36,7 +36,7 @@ class CallGraph(object):
             self.cg_extended[name] = {
                 'dsts' : [],
                 'meta' : {
-                    'modename' : modname
+                    'modname' : modname
                 }
             }
             self.modnames[name] = modname
