@@ -249,15 +249,17 @@ class CallGraphProcessor(ProcessingBase):
                 print(ast.dump(node.func.value))
                 print("-----------------")
                 try:
-                    a1 = node.func.value.value.id
-                    a2 = node.func.value.attr
+                    a1 = node.func.value.id
+                    # a2 = node.func.value.attr # Not sure the usage for a2, so comment it out temporary to avoid bug
                     a3 = node.func.attr
-                    print("Got it: %s -- %s -- %s"%(a1, a2, a3)) 
+                    # print("Got it: %s -- %s -- %s"%(a1, a2, a3)) 
+                    print("Got it: %s -- %s"%(a1, a3)) 
                     # Skip selfs for now. Down the line we probably want to fix this as well, but
                     # will wait with doing this. Most likely a larger rewrite is needed once
                     # I fully grasp what we need.
                     if a1 != "self":
-                        name = "%s.%s.%s"%(a1,a2,a3)
+                        # name = "%s.%s.%s"%(a1,a2,a3)
+                        name = "%s.%s"%(a1,a3)
                         create_ext_edge(name, utils.constants.BUILTIN_NAME, node.lineno, self.modname)
                 except:
                     print("Did not get it")
