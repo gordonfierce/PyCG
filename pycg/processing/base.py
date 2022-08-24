@@ -238,10 +238,14 @@ class ProcessingBase(ast.NodeVisitor):
                     continue
 
                 return_ns = utils.constants.INVALID_NAME
-                if called_def.get_type() == utils.constants.FUN_DEF:
+                if called_def.is_function_def():
                     return_ns = utils.join_ns(called_def.get_ns(), utils.constants.RETURN_NAME)
-                elif called_def.get_type() == utils.constants.CLS_DEF:
+                elif called_def.is_class_def():
                     return_ns = called_def.get_ns()
+                elif called_def.is_ext_def():
+                    return_ns_set = called_def.get_name_pointer().get()
+                    if return_ns_set:
+                        return_ns = return_ns_set.pop()
                 defi = self.def_manager.get(return_ns)
                 if defi:
                     return_defs.append(defi)
