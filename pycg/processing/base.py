@@ -43,6 +43,8 @@ class ProcessingBase(ast.NodeVisitor):
             %(filename, modname, str(modules_analyzed))
         )
 
+        self.possible_fuzz_entrypoints = []
+
         self.modname = modname
 
         self.modules_analyzed = modules_analyzed

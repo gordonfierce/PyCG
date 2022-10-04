@@ -61,7 +61,18 @@ class PostProcessor(ProcessingBase):
 
         names = self.retrieve_call_names(node)
         if not names:
+            logger.info("No names")
             return
+        logger.info("Showing the names")
+        for _name in names:
+            logger.info("- %s"%(_name))
+            if "atheris.Setup" in _name:
+                logger.info("We found the call to atheris")
+                logger.info("%s"%(node.args))
+                logger.info("The second argument: %s"%(node.args[1]))
+                logger.info("Name: %s"%(node.args[1].id))
+                self.possible_fuzz_entrypoints.append(node.args[1].id)
+                #logger.info("The parsed version: %s"%(ast.dump(node.args)))
 
         self.last_called_names = names
 

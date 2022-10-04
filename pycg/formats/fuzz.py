@@ -35,8 +35,10 @@ class Fuzz(BaseFormatter):
         res = {}
 
         res['cg'] = output_cg
+        res['entrypoints'] = self.cg_generator.cg.entrypoints
         res['ep'] = {
             "name" : self.cg_generator.cg.ep,
             "mod"  : self.cg_generator.cg.ep_mod 
         }
+        res['function_lines'] = self.cg_generator.cg.function_line_numbers
         return res

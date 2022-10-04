@@ -55,6 +55,7 @@ class CallGraphProcessor(ProcessingBase):
         self.module_manager = module_manager
 
         self.call_graph = call_graph
+        #self.function_line_numbers = dict()
 
         self.closured = self.def_manager.transitive_closure()
 
@@ -66,8 +67,15 @@ class CallGraphProcessor(ProcessingBase):
         super().visit_Module(node)
         logger.debug("Exit CallGraphProcessor.visit_Module")
 
+    def add_to_current_func(self, line_number):
+        if self.current_method not in self.call_graph.function_line_numbers:
+            self.call_graph.function_line_numbers[self.current_method] = set()
+        self.call_graph.function_line_numbers[self.current_method].add(line_number)
+
     def visit_For(self, node):
-        logger.debug("In CallGraphProcessor.visit_For")
+        logger.debug("In CallGraphProcessor.visit_For line number: %d -- %s" % (node.lineno, self.current_method))
+        self.add_to_current_func(node.lineno)
+
         self.visit(node.iter)
         self.visit(node.target)
         # assign target.id to the return value of __next__ of node.iter.it
@@ -89,7 +97,8 @@ class CallGraphProcessor(ProcessingBase):
         logger.debug("Exit CallGraphProcessor.visit_For")
 
     def visit_Lambda(self, node):
-        logger.debug("In CallGraphProcessor.visit_Lambda")
+        logger.debug("In CallGraphProcessor.visit_Lambda line number: %d -- %s" % (node.lineno, self.current_method))
+        self.add_to_current_func(node.lineno)
         counter = self.scope_manager.get_scope(self.current_ns).inc_lambda_counter()
         lambda_name = utils.get_lambda_name(counter)
         lambda_fullns = utils.join_ns(self.current_ns, lambda_name)
@@ -100,7 +109,8 @@ class CallGraphProcessor(ProcessingBase):
         logger.debug("Exit CallGraphProcessor.visit_Lambda")
 
     def visit_Raise(self, node):
-        logger.debug("In CallGraphProcessor.visit_Raise")
+        logger.debug("In CallGraphProcessor.visit_Raise line number: %d-- %s" % (node.lineno, self.current_method))
+        self.add_to_current_func(node.lineno)
         if not node.exc:
             logger.debug("Exit CallGraphProcessor.visit_Raise: No node exception")
             return
@@ -121,12 +131,12 @@ class CallGraphProcessor(ProcessingBase):
         logger.debug("Exit CallGraphProcessor.visit_Raise")
 
     def visit_AsyncFunctionDef(self, node):
-        logger.debug("In CallGraphProcessor.visit_AsyncFunctionDef")
+        logger.debug("In CallGraphProcessor.visit_AsyncFunctionDef: line number: %d -- %s" % (node.lineno, self.current_method))
         self.visit_FunctionDef(node)
         logger.debug("Exit CallGraphProcessor.visit_AsyncFunctionDef")
 
     def visit_FunctionDef(self, node):
-        logger.debug("In CallGraphProcessor.visit_AsyncFunctionDef")
+        logger.debug("In CallGraphProcessor.visit_FunctionDef: line number: %d -- %s" % (node.lineno, self.current_method))
         for decorator in node.decorator_list:
             self.visit(decorator)
             decoded = self.decode_node(decorator)
@@ -164,10 +174,11 @@ class CallGraphProcessor(ProcessingBase):
         self.current_node_name = node.name
 
         super().visit_FunctionDef(node)
-        logger.debug("Exit CallGraphProcessor.visit_AsyncFunctionDef")
+        logger.debug("Exit CallGraphProcessor.visit_FunctionDef")
 
     def visit_If(self, node):
-        logger.debug("In CallGraphProcessor.visit_If")
+        logger.debug("In CallGraphProcessor.visit_If line number: %d -- %s" % (node.lineno, self.current_method))
+        self.add_to_current_func(node.lineno)
         FTS="%s"%(str(self.current_ns)) 
 
         if (
@@ -183,7 +194,8 @@ class CallGraphProcessor(ProcessingBase):
         logger.debug("Exit CallGraphProcessor.visit_If")
 
     def visit_Expr(self, node):
-        logger.debug("In CallGraphProcessor.visit_Expr")
+        logger.debug("In CallGraphProcessor.visit_Expr line number: %d -- %s" % (node.lineno, self.current_method))
+        self.add_to_current_func(node.lineno)
         FTS="%s"%(str(self.current_ns))
         if FTS in self.call_graph.cg_extended:
             try:
@@ -195,7 +207,8 @@ class CallGraphProcessor(ProcessingBase):
         logger.debug("Exit CallGraphProcessor.visit_Expr")
 
     def visit_Call(self, node):
-        logger.debug("In CallGraphProcessor.visit_Call")
+        logger.debug("In CallGraphProcessor.visit_Call line number: %d -- %s" % (node.lineno, self.current_method))
+        self.add_to_current_func(node.lineno)
         def create_ext_edge(name, ext_modname, e_lineno=-1, mod=""):
             logger.debug(
                 "In CallGraphProcessor.visit_Call.create_ext_edge: "

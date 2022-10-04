@@ -34,6 +34,9 @@ class CallGraph(object):
         self.cg_extended = {}
         self.modnames = {}
         self.ep = None
+        self.entrypoints = []
+
+        self.function_line_numbers = dict()
 
     def add_node(self, name, modname=""):
         if not isinstance(name, str):
@@ -89,6 +92,10 @@ class CallGraph(object):
     def add_entrypoint(self, ep, modname=""):
         self.ep = ep
         self.ep_mod = modname
+        self.entrypoints.append((ep, modname))
+        #if not "entrypoints" in self.cg_extended:
+        #    self.cg_extended['entrypoints'] = []
+        #self.cg_extended['entrypoints'].append((ep, modname))
 
 
 class CallGraphError(Exception):
