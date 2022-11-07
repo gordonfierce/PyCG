@@ -253,28 +253,45 @@ class CallGraphProcessor(ProcessingBase):
             logger.debug("In CallGraphProcessor.visit_Call: No name definition found: Fail safe logic")
             print(str(node))
             if isinstance(node.func, ast.Attribute) and self.has_ext_parent(node.func):
+                logger.debug("I-1")
                 # TODO: This doesn't work for cases where there is an assignment of an attribute
                 # i.e. import os; lala = os.path; lala.dirname()
                 for name in self.get_full_attr_names(node.func):
                     ext_modname = name.split(".")[0]
                     create_ext_edge(name, ext_modname, node.lineno, self.modname)
             elif getattr(node.func, "id", None) and self.is_builtin(node.func.id):
+                logger.debug("I-2")
                 name = utils.join_ns(utils.constants.BUILTIN_NAME, node.func.id)
                 create_ext_edge(name, utils.constants.BUILTIN_NAME, node.lineno, self.modname)
             elif isinstance(node.func, ast.Attribute):
+                logger.debug("I-3")
+                logger.debug(ast.dump(node, indent=4))
                 try:
-                    a1 = node.func.value.id
+                    lhs = ""
+                    lhs_obj = node.func
+                    while isinstance(lhs_obj, ast.Attribute):
+                        tmp = lhs_obj.value
+                        lhs = "." + lhs_obj.attr + lhs
+                        lhs_obj = tmp
+                        if isinstance(tmp, ast.Name):
+                            break
+
+                    lhs = lhs_obj.id + lhs
+
+                    #a1 = node.func.value.id
                     # a2 = node.func.value.attr # Not sure the usage for a2, so comment it out temporary to avoid bug
-                    a3 = node.func.attr
-                    logger.debug("In CallGraphProcessor.visit_Call: Retrieved function call name: %s.%s" %(a1, a3))
+                    #a3 = node.func.attr
+                    logger.debug("In CallGraphProcessor.visit_Call: Retrieved function call name: %s" %(lhs))
                     # Skip selfs for now. Down the line we probably want to fix this as well, but
                     # will wait with doing this. Most likely a larger rewrite is needed once
                     # I fully grasp what we need.
-                    if a1 != "self":
-                        name = "%s.%s"%(a1,a3)
-                        create_ext_edge(name, utils.constants.BUILTIN_NAME, node.lineno, self.modname)
+                    if "self." not in lhs:
+                        #name = "%s.%s"%(a1,a3)
+                        
+                        create_ext_edge(lhs, utils.constants.BUILTIN_NAME, node.lineno, self.modname)
                 except Exception as e:
                     logger.error("In CallGraphProcessor.visit_Call: Exception: %s" % str(e))
+            logger.debug("I-4")
             logger.debug("Exit CallGraphProcessor.visit_Call: No name definition found: Fail safe logic")
             return
 
