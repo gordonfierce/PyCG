@@ -66,7 +66,6 @@ class CallGraph(object):
                 #logger.info("AN7")
 
     def add_edge(self, src, dest, lineno=-1, mod="", ext_mod=""):
-        logger.info(f"Adding edge: {src} == {mod} :::::::: {dest} == {ext_mod}") 
         self.add_node(src, mod)
         self.add_node(dest)
         self.cg[src].add(dest)

@@ -227,10 +227,10 @@ class CallGraphProcessor(ProcessingBase):
         self.visit(node.func)
 
         names = self.retrieve_call_names(node)
-        logger.info("In CallGraphProcessor.visit_Call: Iterating node with line number: %d" % node.lineno)
+        logger.debug("In CallGraphProcessor.visit_Call: Iterating node with line number: %d" % node.lineno)
 
         # Go through the arguments
-        logger.info("In CallGraphProcessor.visit_Call: Going through arguments")
+        logger.debug("In CallGraphProcessor.visit_Call: Going through arguments")
         try:
             if ( isinstance(node.func, ast.Attribute) and
                  node.func.value.id == "atheris" and

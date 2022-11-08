@@ -58,7 +58,7 @@ class PostProcessor(ProcessingBase):
         if not names:
             return
         for _name in names:
-            logger.info("- %s"%(_name))
+            logger.debug("- %s"%(_name))
             if "atheris.Setup" in _name:
                 logger.info("We found the call to atheris")
                 logger.info("%s"%(node.args))
