@@ -56,9 +56,7 @@ class PostProcessor(ProcessingBase):
 
         names = self.retrieve_call_names(node)
         if not names:
-            logger.info("No names")
             return
-        logger.info("Showing the names")
         for _name in names:
             logger.info("- %s"%(_name))
             if "atheris.Setup" in _name:

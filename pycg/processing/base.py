@@ -416,24 +416,19 @@ class ProcessingBase(ast.NodeVisitor):
         logger.debug("In ProcessingBase._retrieve_parent_names")
         if not isinstance(node, ast.Attribute):
             raise Exception("The node is not an attribute")
-        logger.info("R-1")
         decoded = self.decode_node(node.value)
-        logger.info("R-2")
         if not decoded:
             logger.debug("Exit ProcessingBase._retrieve_parent_names: Fail to decode node value")
             return set()
 
-        logger.info("R-3")
         names = set()
         for parent in decoded:
-            logger.info("R-4")
             if not parent or not isinstance(parent, Definition):
                 continue
             if getattr(self, "closured", None) and self.closured.get(parent.get_ns(), None):
                 names = names.union(self.closured.get(parent.get_ns()))
             else:
                 names.add(parent.get_ns())
-        logger.info("R-5")
         logger.debug("Exit ProcessingBase._retrieve_parent_names")
         return names
 
