@@ -27,11 +27,6 @@ from pycg.processing.base import ProcessingBase
 from pycg.machinery.callgraph import CallGraph
 from pycg.machinery.definitions import Definition
 
-logging.basicConfig(
-    format='%(levelname)-8s %(asctime)s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%Y-%m-%d:%H:%M:%S',
-    level=logging.DEBUG
-)
 logger = logging.getLogger(__name__)
 
 

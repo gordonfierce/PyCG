@@ -27,11 +27,6 @@ import logging
 
 from pycg import utils
 
-logging.basicConfig(
-    format='%(levelname)-8s %(asctime)s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%Y-%m-%d:%H:%M:%S',
-    level=logging.DEBUG
-)
 logger = logging.getLogger(__name__)
 
 def get_custom_loader(ig_obj):

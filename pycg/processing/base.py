@@ -29,11 +29,6 @@ from pycg.machinery.definitions import Definition
 
 node_decoder_counter = 0
 
-logging.basicConfig(
-    format='%(levelname)-8s %(asctime)s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%Y-%m-%d:%H:%M:%S',
-    level=logging.INFO
-)
 logger = logging.getLogger(__name__)
 
 

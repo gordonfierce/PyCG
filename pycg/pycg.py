@@ -36,11 +36,6 @@ from pycg.machinery.key_err import KeyErrors
 from pycg.machinery.modules import ModuleManager
 from pycg import utils
 
-logging.basicConfig(
-    format='%(levelname)-8s %(asctime)s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%Y-%m-%d:%H:%M:%S',
-    level=logging.DEBUG
-)
 logger = logging.getLogger(__name__)
 
 class CallGraphGenerator(object):
@@ -172,6 +167,13 @@ class CallGraphGenerator(object):
         #try:
         # TODO: I REVERSED THE FALSE TO TRUE BECAUSE INSTALLING HOOKS CAUSED A LOT
         # OF ISSUES. THIS SHOULD BE FURTHER INSPECTED.
+        logging.basicConfig(
+            format='%(levelname)-8s %(asctime)s [%(filename)s:%(lineno)d] %(message)s',
+            datefmt='%Y-%m-%d:%H:%M:%S',
+            level=logging.INFO
+        )
+        logger.info("Starting analysis")
+
         self.do_pass(PreProcessor, True,
                 self.import_manager, self.scope_manager, self.def_manager,
                 self.class_manager, self.module_manager)

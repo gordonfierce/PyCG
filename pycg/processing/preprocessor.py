@@ -27,11 +27,6 @@ from pycg.machinery.definitions import DefinitionManager, Definition
 from pycg import utils
 from pycg.processing.base import ProcessingBase
 
-logging.basicConfig(
-    format='%(levelname)-8s %(asctime)s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%Y-%m-%d:%H:%M:%S',
-    level=logging.INFO
-)
 logger = logging.getLogger(__name__)
 
 
