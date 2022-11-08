@@ -30,7 +30,7 @@ from pycg.processing.base import ProcessingBase
 logging.basicConfig(
     format='%(levelname)-8s %(asctime)s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%Y-%m-%d:%H:%M:%S',
-    level=logging.DEBUG
+    level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ class PreProcessor(ProcessingBase):
         return defaults
 
     def analyze_submodule(self, modname):
-        logger.debug("In PreProcessor.analyze_submodule")
+        logger.debug("In PreProcessor.analyze_submodule %s" % (modname))
         super().analyze_submodule(PreProcessor, modname,
             self.import_manager, self.scope_manager, self.def_manager, self.class_manager,
             self.module_manager, modules_analyzed=self.get_modules_analyzed())
@@ -146,6 +146,8 @@ class PreProcessor(ProcessingBase):
         of parent directories (e.g. in this case level=1)
         """
         logger.debug("In PreProcessor.visit_Import")
+        logger.debug("%s"%(ast.dump(node, indent=4)))
+        logger.debug("--------------------")
 
         def handle_src_name(name):
             logger.debug("In PreProcessor.visit_Import.handle_src_name")
@@ -205,25 +207,36 @@ class PreProcessor(ProcessingBase):
             logger.debug("Exit PreProcessor.visit_Import.add_external_def")
 
         for import_item in node.names:
+            logger.debug("IMP-1 %s"%(import_item.name))
             src_name = handle_src_name(import_item.name)
+            logger.debug("IMP-2 %s"%(src_name))
             tgt_name = import_item.asname if import_item.asname else import_item.name
+            logger.debug("IMP-3 %s"%(tgt_name))
             imported_name = self.import_manager.handle_import(src_name, level)
+            logger.debug("IMP-4 %s"%(imported_name))
 
             if not imported_name:
                 add_external_def(src_name, tgt_name)
                 continue
 
             fname = self.import_manager.get_filepath(imported_name)
+            logger.debug("IMP-5 %s"%(fname))
             if not fname:
                 add_external_def(src_name, tgt_name)
                 continue
+
+            logger.debug("IMP-6")
             # only analyze modules under the current directory
             if self.import_manager.get_mod_dir() in fname:
+                logger.debug("IMP-7")
                 if not imported_name in self.modules_analyzed:
+                    logger.debug("IMP-8")
                     self.analyze_submodule(imported_name)
                 handle_scopes(import_item.name, tgt_name, imported_name)
             else:
+                logger.debug("IMP-9")
                 add_external_def(src_name, tgt_name)
+            logger.debug("IMP-10")
 
         # handle all modules that were not analyzed
         for modname in self.import_manager.get_imports(self.modname):

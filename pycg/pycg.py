@@ -139,13 +139,15 @@ class CallGraphGenerator(object):
             input_pkg = self.package
             input_mod = self._get_mod_name(entry_point, input_pkg)
             input_file = os.path.abspath(entry_point)
-
+            logger.debug("E1 -- %s -- %s -- %s"%(input_pkg, input_mod, input_file))
             if not input_mod:
                 continue
 
+            logger.debug("E2 -- %s -- %s -- %s"%(input_pkg, input_mod, input_file))
             if not input_pkg:
                 input_pkg = os.path.dirname(input_file)
 
+            logger.debug("E3 -- %s -- %s -- %s"%(input_pkg, input_mod, input_file))
             if not input_mod in modules_analyzed:
                 logger.info("Running analysis on: %s"%(input_file))
                 logger.info("Input mod: %s"%(input_mod))
@@ -164,6 +166,7 @@ class CallGraphGenerator(object):
 
                 if install_hooks:
                     self.remove_import_hooks()
+            logger.debug("E5 -- %s -- %s -- %s"%(input_pkg, input_mod, input_file))
 
     def analyze(self):
         #try:
@@ -180,6 +183,7 @@ class CallGraphGenerator(object):
 
         iter_cnt = 0
         while (self.max_iter < 0 or iter_cnt < self.max_iter) and (not self.has_converged()):
+            logger.debug("Iteration %d"%(iter_cnt))
             self.state = self.extract_state()
             self.reset_counters()
             self.do_pass(PostProcessor, False,

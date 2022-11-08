@@ -28,7 +28,7 @@ from pycg import utils
 logging.basicConfig(
     format='%(levelname)-8s %(asctime)s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%Y-%m-%d:%H:%M:%S',
-    level=logging.DEBUG
+    level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
@@ -193,40 +193,66 @@ class PostProcessor(ProcessingBase):
 
     def visit_ClassDef(self, node):
         logger.debug("In PreProcessor.visit_ClassDef")
+        logger.debug("CC-1")
         # create a definition for the class (node.name)
         cls_def = self.def_manager.handle_class_def(self.current_ns, node.name)
+        logger.debug("CC-2")
 
         # iterate bases to compute MRO for the class
         cls = self.class_manager.get(cls_def.get_ns())
         if not cls:
+            logger.debug("CC-3")
             cls = self.class_manager.create(cls_def.get_ns(), self.modname)
+        logger.debug("CC-4")
 
         cls.clear_mro()
+        logger.debug("CC-5")
         for base in node.bases:
+            logger.debug("CC-6")
             # all bases are of the type ast.Name
             self.visit(base)
 
             bases = self.decode_node(base)
+            logger.debug("CC-7")
             for base_def in bases:
+                logger.debug("CC-8")
                 if not isinstance(base_def, Definition):
                     continue
+                logger.debug("CC-9")
                 names = set()
                 if base_def.get_name_pointer().get():
+                    logger.debug("CC-10")
                     names = base_def.get_name_pointer().get()
+                    logger.debug("CC-11")
                 else:
+                    logger.debug("CC-12")
                     names.add(base_def.get_ns())
+                    logger.debug("CC-13")
+                logger.debug("CC-14")
                 for name in names:
                     # add the base as a parent
+                    logger.debug("CC-15")
                     cls.add_parent(name)
+                    logger.debug("CC-16")
 
                     # add the base's parents
                     parent_cls = self.class_manager.get(name)
+                    logger.debug("CC-17")
                     if parent_cls:
-                        cls.add_parent(parent_cls.get_mro())
+                        logger.debug("CC-18")
+                        parent_cls_mro = parent_cls.get_mro()
+                        logger.debug("CC-18.1")
+                        if parent_cls_mro == cls.mro:
+                            continue
+                        cls.add_parent(parent_cls_mro)
+                        logger.debug("CC-19")
 
+        logger.debug("CC-20")
         cls.compute_mro()
+        logger.debug("CC-21")
 
         super().visit_ClassDef(node)
+        logger.debug("CC-22")
         logger.debug("Exit PreProcessor.visit_ClassDef")
 
     def visit_List(self, node):
