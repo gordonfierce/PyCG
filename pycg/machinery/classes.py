@@ -42,39 +42,26 @@ class ClassNode:
         self.mro = [ns]
 
     def add_parent(self, parent):
-        print("C-A-1")
         if isinstance(parent, str):
-            print("C-A-2")
             self.mro.append(parent)
         elif isinstance(parent, list):
-            print("C-A-3")
             if self.mro != parent:
                 for item in parent:
-                    print("C-A-4: %d"%(len(parent)))
                     if self.mro == parent:
-                        print("C-A-4.1")
-                    else:
-                        print("C-A-4.2")
+                        print("This should never happen and will cause an eternal loop")
+                        import sys
+                        sys.exit(123)
+
                     self.mro.append(item)
-                    print("C-A-5")
-        print("C-A-6")
         self.fix_mro()
-        print("C-A-7")
 
     def fix_mro(self):
         new_mro = []
-        print("C-M-1")
         for idx, item in enumerate(self.mro):
-            print("C-M-2")
             if self.mro[idx+1:].count(item) > 0:
-                print("C-M-2.1")
                 continue
-            print("C-M-3")
             new_mro.append(item)
-            print("C-M-4")
-        print("C-M-5")
         self.mro = new_mro
-        print("C-M-6")
 
     def get_mro(self):
         return self.mro
