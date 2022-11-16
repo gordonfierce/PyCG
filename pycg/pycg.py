@@ -161,7 +161,7 @@ class CallGraphGenerator(object):
 
                 if install_hooks:
                     self.remove_import_hooks()
-            logger.debug("E5 -- %s -- %s -- %s"%(input_pkg, input_mod, input_file))
+            logger.debug("E5 -- %s -- %s -- %s #"%(input_pkg, input_mod, input_file))
 
     def analyze(self):
         #try:
