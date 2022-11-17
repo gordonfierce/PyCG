@@ -379,6 +379,11 @@ class PostProcessor(ProcessingBase):
 
     def analyze(self):
         logger.debug("In PreProcessor.analyze")
-        self.visit(ast.parse(self.contents, self.filename))
+        try:
+            self.visit(ast.parse(self.contents, self.filename))
+        except SyntaxError:
+            # Handle potential syntax errors in the module. Do not
+            # crash in the event a SyntaxError exists in the loaded module.
+            pass
         self.analyze_submodules()
         logger.debug("Exit PreProcessor.analyze")

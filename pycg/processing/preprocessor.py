@@ -168,20 +168,21 @@ class PreProcessor(ProcessingBase):
 
             current_scope = self.scope_manager.get_scope(self.current_ns)
             imported_scope = self.scope_manager.get_scope(modname)
-            if tgt_name == "*":
-                for name, defi in imported_scope.get_defs().items():
-                    create_def(current_scope, name, defi)
-                    current_scope.get_def(name).get_name_pointer().add(defi.get_ns())
-            else:
-                # if it exists in the imported scope then copy it
-                defi = imported_scope.get_def(imp_name)
-                if not defi:
-                    # maybe its a full namespace
-                    defi = self.def_manager.get(imp_name)
+            if imported_scope is not None:
+                if tgt_name == "*":
+                    for name, defi in imported_scope.get_defs().items():
+                        create_def(current_scope, name, defi)
+                        current_scope.get_def(name).get_name_pointer().add(defi.get_ns())
+                else:
+                    # if it exists in the imported scope then copy it
+                    defi = imported_scope.get_def(imp_name)
+                    if not defi:
+                        # maybe its a full namespace
+                        defi = self.def_manager.get(imp_name)
 
-                if defi:
-                    create_def(current_scope, tgt_name, defi)
-                    current_scope.get_def(tgt_name).get_name_pointer().add(defi.get_ns())
+                    if defi:
+                        create_def(current_scope, tgt_name, defi)
+                        current_scope.get_def(tgt_name).get_name_pointer().add(defi.get_ns())
             logger.debug("Exit PreProcessor.visit_Import.handle_scopes")
 
         def add_external_def(name, target):
@@ -441,6 +442,12 @@ class PreProcessor(ProcessingBase):
             self.import_manager.create_node(self.modname)
             self.import_manager.set_filepath(self.modname, self.filename)
 
-        self.visit(ast.parse(self.contents, self.filename))
+        try:
+            self.visit(ast.parse(self.contents, self.filename))
+        except SyntaxError:
+            # In the event for some reason there is a Syntax error we avoid
+            # failing completely.
+            logger.info("SyntaxError happened for %s" % (self.filename))
+            pass
 
         logger.debug("Exit PreProcessor.analyze")

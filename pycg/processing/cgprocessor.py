@@ -329,7 +329,13 @@ class CallGraphProcessor(ProcessingBase):
 
     def analyze(self):
         logger.debug("In CallGraphProcessor.analyze")
-        self.visit(ast.parse(self.contents, self.filename))
+        try:
+            self.visit(ast.parse(self.contents, self.filename))
+        except SyntaxError:
+            # Handle potential syntax errors in the module. Do not
+            # crash in the event a SyntaxError exists in the loaded module.
+            pass
+
         self.analyze_submodules()
         logger.debug("Exit CallGraphProcessor.analyze")
 
