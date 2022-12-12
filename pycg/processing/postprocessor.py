@@ -178,7 +178,8 @@ class PostProcessor(ProcessingBase):
                                 continue
                             for name in pos_arg_names:
                                 arg_def = self.def_manager.get(name)
-                                arg_def.get_name_pointer().add(prev_name)
+                                if arg_def is not None:
+                                    arg_def.get_name_pointer().add(prev_name)
                 previous_names = new_previous_names
 
         super().visit_FunctionDef(node)
