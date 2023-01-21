@@ -54,7 +54,10 @@ class ProcessingBase(ast.NodeVisitor):
             self.contents = ""
         else:
             ff = open(filename, "rt")
-            self.contents = ff.read()
+            try:
+                self.contents = ff.read()
+            except:
+                self.contents = ""
 
         self.name_stack = []
         self.method_stack = []
