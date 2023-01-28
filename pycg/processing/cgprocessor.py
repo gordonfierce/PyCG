@@ -171,10 +171,36 @@ class CallGraphProcessor(ProcessingBase):
         super().visit_FunctionDef(node)
         logger.debug("Exit CallGraphProcessor.visit_FunctionDef")
 
+    def visit_Raise(self, node):
+        logger.info("In PostProcessor.visitRaise")
+        if isinstance(node.exc, ast.Name):
+            logger.info("We got a raise instruction")
+            logger.info("%s"%(str(node.exc.id)))
+        if isinstance(node.exc, ast.Call):
+            logger.info("We got a raise instruction using call")
+            logger.info("%s"%(str(node.exc)))
+            if isinstance(node.exc.func, ast.Name):
+                logger.info("The function is a name")
+                logger.info("%s"%(node.exc.func.id))
+                FTS="%s"%(str(self.current_ns))
+                if (
+                    self.current_node_name != None and
+                    FTS in self.call_graph.cg_extended
+                ):
+                    try:
+                        logger.info("Adding raise 1")
+                        self.call_graph.cg_extended[FTS]['meta']['raises'].add(node.exc.func.id)
+                        logger.info("Adding raise 2")
+                    except:
+                        logger.info("Adding raise 3")
+                        self.call_graph.cg_extended[FTS]['meta']['raises'] = set()
+                        self.call_graph.cg_extended[FTS]['meta']['raises'].add(node.exc.func.id)
+
+
     def visit_If(self, node):
         logger.debug("In CallGraphProcessor.visit_If line number: %d -- %s" % (node.lineno, self.current_method))
         self.add_to_current_func(node.lineno)
-        FTS="%s"%(str(self.current_ns)) 
+        FTS="%s"%(str(self.current_ns))
 
         if (
             self.current_node_name != None and
@@ -282,7 +308,7 @@ class CallGraphProcessor(ProcessingBase):
                     # I fully grasp what we need.
                     if "self." not in lhs:
                         #name = "%s.%s"%(a1,a3)
-                        
+
                         create_ext_edge(lhs, utils.constants.BUILTIN_NAME, node.lineno, self.modname)
                 except Exception as e:
                     logger.error("In CallGraphProcessor.visit_Call: Exception: %s" % str(e))
