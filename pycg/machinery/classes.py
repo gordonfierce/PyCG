@@ -21,6 +21,7 @@
 class ClassManager:
     def __init__(self):
         self.names = {}
+        self.inheritance = {}
 
     def get(self, name):
         if name in self.names:
@@ -30,7 +31,15 @@ class ClassManager:
         if not name in self.names:
             cls = ClassNode(name, module)
             self.names[name] = cls
+        if not name in self.inheritance:
+            self.inheritance[name] = set()
+
         return self.names[name]
+
+    def add_inheritance(self, name, parent):
+        if name not in self.inheritance:
+            return
+        self.inheritance[name].add(parent)
 
     def get_classes(self):
         return self.names

@@ -59,7 +59,10 @@ class PreProcessor(ProcessingBase):
                 continue
 
             self.visit(d)
-            defaults[node.args.args[cnt].arg] = self.decode_node(d)
+            try:
+              defaults[node.args.args[cnt].arg] = self.decode_node(d)
+            except IndexError:
+              continue
 
         start = len(node.args.kwonlyargs) - len(node.args.kw_defaults)
         for cnt, d in enumerate(node.args.kw_defaults, start=start):
@@ -431,6 +434,10 @@ class PreProcessor(ProcessingBase):
         cls = self.class_manager.get(cls_def.get_ns())
         if not cls:
             cls = self.class_manager.create(cls_def.get_ns(), self.modname)
+            for nam in node.bases:
+                if isinstance(nam, ast.Name):
+                    self.class_manager.add_inheritance(cls_def.get_ns(), nam.id)
+
 
         super().visit_ClassDef(node)
 
