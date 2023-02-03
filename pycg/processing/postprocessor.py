@@ -63,8 +63,12 @@ class PostProcessor(ProcessingBase):
                 logger.info("We found the call to atheris")
                 logger.info("%s"%(node.args))
                 logger.info("The second argument: %s"%(node.args[1]))
-                logger.info("Name: %s"%(node.args[1].id))
-                self.possible_fuzz_entrypoints.append(node.args[1].id)
+                try:
+                  logger.info("Name: %s"%(node.args[1].id))
+                  self.possible_fuzz_entrypoints.append(node.args[1].id)
+                except:
+                  # This error can happen when arguments are passed too atheri.setup which we don't handle
+                  pass
                 #logger.info("The parsed version: %s"%(ast.dump(node.args)))
 
         self.last_called_names = names
