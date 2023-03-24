@@ -145,6 +145,7 @@ class CallGraphProcessor(ProcessingBase):
         self.call_graph.add_node(utils.join_ns(self.current_ns, node.name), self.modname)
         self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['lineno'] = node.lineno
         arg_names = []
+        default_vals = []
         arg_count = 0
         if node.args.args != None:
             for arg in node.args.args:
@@ -156,6 +157,10 @@ class CallGraphProcessor(ProcessingBase):
                 arg_names.append(arg.arg)
         if node.args.kwarg != None:
             arg_names.append(node.args.kwarg.arg)
+        if node.args.defaults != None:
+            for def_val in node.args.defaults:
+                default_vals.append(str(def_val))
+
 
         arg_types = []
         for arg_name in arg_names:
@@ -164,6 +169,7 @@ class CallGraphProcessor(ProcessingBase):
         self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['argCount'] = len(arg_names)
         self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['argNames'] = arg_names
         self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['argTypes'] = arg_types
+        self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['argDefaultValues'] = default_vals
         self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['ifCount'] = 0
         self.call_graph.cg_extended[utils.join_ns(self.current_ns, node.name)]['meta']['exprCount'] = 0
         self.current_node_name = node.name
