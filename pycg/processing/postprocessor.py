@@ -58,7 +58,7 @@ class PostProcessor(ProcessingBase):
         if not names:
             return
         for _name in names:
-            logger.debug("- %s"%(_name))
+            #logger.debug("- %s"%(_name))
             if "atheris.Setup" in _name:
                 logger.info("We found the call to atheris")
                 logger.info("%s"%(node.args))
@@ -199,58 +199,58 @@ class PostProcessor(ProcessingBase):
         # iterate bases to compute MRO for the class
         cls = self.class_manager.get(cls_def.get_ns())
         if not cls:
-            logger.debug("CC-3")
+            #logger.debug("CC-3")
             cls = self.class_manager.create(cls_def.get_ns(), self.modname)
-        logger.debug("CC-4")
+        #logger.debug("CC-4")
 
         cls.clear_mro()
-        logger.debug("CC-5")
+        #logger.debug("CC-5")
         for base in node.bases:
-            logger.debug("CC-6")
+            #logger.debug("CC-6")
             # all bases are of the type ast.Name
             self.visit(base)
 
             bases = self.decode_node(base)
-            logger.debug("CC-7")
+            #logger.debug("CC-7")
             for base_def in bases:
-                logger.debug("CC-8")
+                #logger.debug("CC-8")
                 if not isinstance(base_def, Definition):
                     continue
-                logger.debug("CC-9")
+                #logger.debug("CC-9")
                 names = set()
                 if base_def.get_name_pointer().get():
-                    logger.debug("CC-10")
+                    #logger.debug("CC-10")
                     names = base_def.get_name_pointer().get()
-                    logger.debug("CC-11")
+                    #logger.debug("CC-11")
                 else:
-                    logger.debug("CC-12")
+                    #logger.debug("CC-12")
                     names.add(base_def.get_ns())
-                    logger.debug("CC-13")
+                    #logger.debug("CC-13")
                 logger.debug("CC-14")
                 for name in names:
                     # add the base as a parent
-                    logger.debug("CC-15")
+                    #logger.debug("CC-15")
                     cls.add_parent(name)
-                    logger.debug("CC-16")
+                    #logger.debug("CC-16")
 
                     # add the base's parents
                     parent_cls = self.class_manager.get(name)
-                    logger.debug("CC-17")
+                    #logger.debug("CC-17")
                     if parent_cls:
-                        logger.debug("CC-18")
+                        #logger.debug("CC-18")
                         parent_cls_mro = parent_cls.get_mro()
-                        logger.debug("CC-18.1")
+                        #logger.debug("CC-18.1")
                         if parent_cls_mro == cls.mro:
                             continue
                         cls.add_parent(parent_cls_mro)
-                        logger.debug("CC-19")
+                        #logger.debug("CC-19")
 
-        logger.debug("CC-20")
+        #logger.debug("CC-20")
         cls.compute_mro()
-        logger.debug("CC-21")
+        #logger.debug("CC-21")
 
         super().visit_ClassDef(node)
-        logger.debug("CC-22")
+        #logger.debug("CC-22")
         logger.debug("Exit PreProcessor.visit_ClassDef")
 
     def visit_List(self, node):

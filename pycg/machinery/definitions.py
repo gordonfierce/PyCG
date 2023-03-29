@@ -18,8 +18,13 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+import logging
+
 from pycg.machinery.pointers import NamePointer, LiteralPointer
 from pycg import utils
+
+logger = logging.getLogger(__name__)
+
 
 class DefinitionManager(object):
     def __init__(self):
@@ -142,11 +147,19 @@ class DefinitionManager(object):
                     pointsto_arg_def.add(item)
             return changed_something
 
+        logger.info("Def-Iterating %d defs"%(len(self.defs)))
+        if len(self.defs) > 9000:
+            logger.info("The definition list is too large. This is likely to take forever. Avoid this step")
+            return
+
         for i in range(len(self.defs)):
+            #logger.info("Def-idx-%d"%(i))
             changed_something = False
             for ns, current_def in self.defs.items():
+                #logger.info("Def-idx2-%d"%(idx2))
                 # the name pointer of the definition we're currently iterating
                 current_name_pointer = current_def.get_name_pointer()
+                #print("Name point: %s"%(str(current_name_pointer)))
                 # iterate the names the current definition points to items
                 # for name in current_name_pointer.get():
                 for name in current_name_pointer.get().copy():
@@ -172,7 +185,6 @@ class DefinitionManager(object):
                                 pointsto_name_pointer.add_arg(arg_name, arg)
                                 continue
                         changed_something = changed_something or update_pointsto_args(pointsto_args, arg, current_def.get_ns())
-
             if not changed_something:
                 break
 

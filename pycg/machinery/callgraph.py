@@ -79,7 +79,7 @@ class CallGraph(object):
                 "ext_mod" : ext_mod
             }
         )
-        logger.debug(self.cg_extended[src])
+        #logger.debug(self.cg_extended[src])
 
     def get(self):
         return self.cg

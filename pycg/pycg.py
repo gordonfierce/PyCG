@@ -153,6 +153,7 @@ class CallGraphGenerator(object):
                     self.import_manager.install_hooks()
                 else:
                     logger.info("Not installing hooks")
+                logger.info("Creating processing class")
                 processor = cls(input_file, input_mod,
                                 modules_analyzed=modules_analyzed, *args, **kwargs)
                 logger.info("Done analysis: %s"%(input_file))

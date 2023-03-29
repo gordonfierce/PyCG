@@ -261,17 +261,17 @@ class ProcessingBase(ast.NodeVisitor):
 
     def decode_node(self, node):
         global node_decoder_counter
-        logger.debug("Node counter: %d"%(node_decoder_counter))
+        #logger.debug("Node counter: %d"%(node_decoder_counter))
         node_decoder_counter += 1
-        logger.debug("In ProcessingBase.decode_node")
+        #logger.debug("In ProcessingBase.decode_node")
         if isinstance(node, ast.Name):
-            logger.debug("DEC-1")
-            logger.debug("Exit ProcessingBase.decode_node: Node type: Name")
+            #logger.debug("DEC-1")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: Name")
 
             node_decoder_counter -= 1
             return [self.scope_manager.get_def(self.current_ns, node.id)]
         elif isinstance(node, ast.Call):
-            logger.debug("DEC-2")
+            #logger.debug("DEC-2")
             decoded = self.decode_node(node.func)
             return_defs = []
             for called_def in decoded:
@@ -291,93 +291,93 @@ class ProcessingBase(ast.NodeVisitor):
                 if defi:
                     return_defs.append(defi)
 
-            logger.debug("Exit ProcessingBase.decode_node: Node type: Call")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: Call")
             node_decoder_counter -= 1
             return return_defs
         elif isinstance(node, ast.Lambda):
-            logger.debug("DEC-3")
+            #logger.debug("DEC-3")
             lambda_counter = self.scope_manager.get_scope(self.current_ns).get_lambda_counter()
             lambda_name = utils.get_lambda_name(lambda_counter)
-            logger.debug("Exit ProcessingBase.decode_node: Node type: Lambda")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: Lambda")
             node_decoder_counter -= 1
             return [self.scope_manager.get_def(self.current_ns, lambda_name)]
         elif isinstance(node, ast.Tuple):
-            logger.debug("DEC-4")
+            #logger.debug("DEC-4")
             decoded = []
             for elt in node.elts:
                 decoded.append(self.decode_node(elt))
-            logger.debug("Exit ProcessingBase.decode_node: Node type: Tuple")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: Tuple")
             node_decoder_counter -= 1
             return decoded
         elif isinstance(node, ast.BinOp):
-            logger.debug("DEC-5")
+            #logger.debug("DEC-5")
             decoded_left = self.decode_node(node.left)
             decoded_right = self.decode_node(node.right)
             # return the non definition types if we're talking about a binop
             # since we only care about the type of the return (num, str, etc)
             if not isinstance(decoded_left, Definition):
-                logger.debug("Exit ProcessingBase.decode_node: Node type: BinOp->Left")
+                #logger.debug("Exit ProcessingBase.decode_node: Node type: BinOp->Left")
                 node_decoder_counter -= 1
                 return decoded_left
             if not isinstance(decoded_right, Definition):
-                logger.debug("Exit ProcessingBase.decode_node: Node type: BinOp->Right")
+                #logger.debug("Exit ProcessingBase.decode_node: Node type: BinOp->Right")
                 node_decoder_counter -= 1
                 return decoded_right
         elif isinstance(node, ast.Attribute):
-            logger.debug("DEC-6")
+            #logger.debug("DEC-6")
             names = self._retrieve_attribute_names(node)
             defis = []
             for name in names:
                 defi = self.def_manager.get(name)
                 if defi:
                     defis.append(defi)
-            logger.debug("Exit ProcessingBase.decode_node: Node type: Attribute")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: Attribute")
             node_decoder_counter -= 1
             return defis
         elif isinstance(node, ast.Num):
-            logger.debug("DEC-7")
-            logger.debug("Exit ProcessingBase.decode_node: Node type: Num")
+            #logger.debug("DEC-7")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: Num")
             node_decoder_counter -= 1
             return [node.n]
         elif isinstance(node, ast.Str):
-            logger.debug("DEC-8")
-            logger.debug("Exit ProcessingBase.decode_node: Node type: Str")
+            #logger.debug("DEC-8")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: Str")
             node_decoder_counter -= 1
             return [node.s]
         elif self._is_literal(node):
-            logger.debug("DEC-9")
-            logger.debug("Exit ProcessingBase.decode_node: Node type: Literal Node")
+            #logger.debug("DEC-9")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: Literal Node")
             node_decoder_counter -= 1
             return [node]
         elif isinstance(node, ast.Dict):
-            logger.debug("DEC-10")
+            #logger.debug("DEC-10")
             dict_counter = self.scope_manager.get_scope(self.current_ns).get_dict_counter()
             dict_name = utils.get_dict_name(dict_counter)
             scope_def = self.scope_manager.get_def(self.current_ns, dict_name)
-            logger.debug("Exit ProcessingBase.decode_node: Node type: Dict")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: Dict")
             node_decoder_counter -= 1
             return [self.scope_manager.get_def(self.current_ns, dict_name)]
         elif isinstance(node, ast.List):
-            logger.debug("DEC-11")
+            #logger.debug("DEC-11")
             list_counter = self.scope_manager.get_scope(self.current_ns).get_list_counter()
             list_name = utils.get_list_name(list_counter)
             scope_def = self.scope_manager.get_def(self.current_ns, list_name)
-            logger.debug("Exit ProcessingBase.decode_node: Node type: List")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: List")
             node_decoder_counter -= 1
             return [self.scope_manager.get_def(self.current_ns, list_name)]
         elif isinstance(node, ast.Subscript):
-            logger.debug("DEC-12")
+            #logger.debug("DEC-12")
             names = self.retrieve_subscript_names(node)
             defis = []
             for name in names:
                 defi = self.def_manager.get(name)
                 if defi:
                     defis.append(defi)
-            logger.debug("Exit ProcessingBase.decode_node: Node type: Subscript")
+            #logger.debug("Exit ProcessingBase.decode_node: Node type: Subscript")
             node_decoder_counter -= 1
             return defis
 
-        logger.debug("Exit ProcessingBase.decode_node: Invalid node type")
+        #logger.debug("Exit ProcessingBase.decode_node: Invalid node type")
         node_decoder_counter -= 1
         return []
 
@@ -386,17 +386,17 @@ class ProcessingBase(ast.NodeVisitor):
         return isinstance(item, int) or isinstance(item, str) or isinstance(item, float)
 
     def _retrieve_base_names(self, node):
-        logger.debug("In ProcessingBase._retrieve_base_names")
+        #logger.debug("In ProcessingBase._retrieve_base_names")
         if not isinstance(node, ast.Attribute):
             raise Exception("The node is not an attribute")
 
         if not getattr(self, "closured", None):
-            logger.debug("Exit ProcessingBase._retrieve_base_names: Not closure")
+            #logger.debug("Exit ProcessingBase._retrieve_base_names: Not closure")
             return set()
 
         decoded = self.decode_node(node.value)
         if not decoded:
-            logger.debug("Exit ProcessingBase._retrieve_base_names: Fail to decode node value")
+            #logger.debug("Exit ProcessingBase._retrieve_base_names: Fail to decode node value")
             return set()
 
         names = set()
@@ -411,17 +411,17 @@ class ProcessingBase(ast.NodeVisitor):
 
                 for item in cls.get_mro():
                     names.add(item)
-        logger.debug("Exit ProcessingBase._retrieve_base_names")
+        #logger.debug("Exit ProcessingBase._retrieve_base_names")
         return names
 
 
     def _retrieve_parent_names(self, node):
-        logger.debug("In ProcessingBase._retrieve_parent_names")
+        #logger.debug("In ProcessingBase._retrieve_parent_names")
         if not isinstance(node, ast.Attribute):
             raise Exception("The node is not an attribute")
         decoded = self.decode_node(node.value)
         if not decoded:
-            logger.debug("Exit ProcessingBase._retrieve_parent_names: Fail to decode node value")
+            #logger.debug("Exit ProcessingBase._retrieve_parent_names: Fail to decode node value")
             return set()
 
         names = set()
@@ -432,56 +432,56 @@ class ProcessingBase(ast.NodeVisitor):
                 names = names.union(self.closured.get(parent.get_ns()))
             else:
                 names.add(parent.get_ns())
-        logger.debug("Exit ProcessingBase._retrieve_parent_names")
+        #logger.debug("Exit ProcessingBase._retrieve_parent_names")
         return names
 
     def _retrieve_attribute_names(self, node):
-        logger.debug("In ProcessingBase._retrieve_attribute_names")
+        #logger.debug("In ProcessingBase._retrieve_attribute_names")
         if not getattr(self, "closured", None):
-            logger.debug("Exit ProcessingBase._retrieve_attribute_names: Not closure")
+            #logger.debug("Exit ProcessingBase._retrieve_attribute_names: Not closure")
             return set()
-        logger.debug("D-1")
+        #logger.debug("D-1")
         parent_names = self._retrieve_parent_names(node)
         names = set()
         for parent_name in parent_names:
-            logger.debug("D-2")
+            #logger.debug("D-2")
             for name in self.closured.get(parent_name, []):
-                logger.debug("D-3")
+                #logger.debug("D-3")
                 defi = self.def_manager.get(name)
                 if not defi:
                     continue
-                logger.debug("D-3.1")
+                #logger.debug("D-3.1")
                 if defi.is_class_def():
-                    logger.debug("D-3.1-1")
+                    #logger.debug("D-3.1-1")
                     cls_names = self.find_cls_fun_ns(defi.get_ns(), node.attr)
                     if cls_names:
-                        logger.debug("D-3.1-2")
+                        #logger.debug("D-3.1-2")
                         names = names.union(cls_names)
-                logger.debug("D-3.2")
+                #logger.debug("D-3.2")
                 if defi.is_function_def() or defi.is_module_def():
-                    logger.debug("D-3.3")
+                    #logger.debug("D-3.3")
                     names.add(utils.join_ns(name, node.attr))
-                logger.debug("D-3.4")
+                #logger.debug("D-3.4")
                 if defi.is_ext_def():
-                    logger.debug("D-3.5")
+                    #logger.debug("D-3.5")
                     # HACK: extenral attributes can lead to infinite loops
                     # Identify them here
                     if node.attr in name:
                         continue
-                    logger.debug("D-3.6")
+                    #logger.debug("D-3.6")
                     ext_name = utils.join_ns(name, node.attr)
                     if not self.def_manager.get(ext_name):
-                        logger.debug("D-3.7")
+                        #logger.debug("D-3.7")
                         self.def_manager.create(ext_name, utils.constants.EXT_DEF)
-                    logger.debug("D-3.8")
+                    #logger.debug("D-3.8")
                     names.add(ext_name)
 
-        logger.debug("D-10")
-        logger.debug("Exit ProcessingBase._retrieve_attribute_names")
+        #logger.debug("D-10")
+        #logger.debug("Exit ProcessingBase._retrieve_attribute_names")
         return names
 
     def iterate_call_args(self, defi, node):
-        logger.debug("In ProcessingBase.iterate_call_args")
+        #logger.debug("In ProcessingBase.iterate_call_args")
         for pos, arg in enumerate(node.args):
             self.visit(arg)
             decoded = self.decode_node(arg)
@@ -528,15 +528,15 @@ class ProcessingBase(ast.NodeVisitor):
                         defi.get_name_pointer().add_arg(keyword.arg, d.get_ns())
                     else:
                         defi.get_name_pointer().add_lit_arg(keyword.arg, d)
-        logger.debug("Exit ProcessingBase.loiterate_call_args")
+        #logger.debug("Exit ProcessingBase.loiterate_call_args")
 
     def retrieve_subscript_names(self, node):
-        logger.debug("In ProcessingBase.retrieve_subscript_names")
+        #logger.debug("In ProcessingBase.retrieve_subscript_names")
         if not isinstance(node, ast.Subscript):
             raise Exception("The node is not an subcript")
 
         if not getattr(self, "closured", None):
-            logger.debug("Exit ProcessingBase.retrieve_subscript_names: Not Closure")
+            #logger.debug("Exit ProcessingBase.retrieve_subscript_names: Not Closure")
             return set()
 
         if getattr(node.slice, "value", None) and self._is_literal(node.slice.value):
@@ -576,11 +576,11 @@ class ProcessingBase(ast.NodeVisitor):
                 full_ns = utils.join_ns(d, str_key)
                 full_names.add(full_ns)
 
-        logger.debug("Exit ProcessingBase.retrieve_subscript_names")
+        #logger.debug("Exit ProcessingBase.retrieve_subscript_names")
         return full_names
 
     def retrieve_call_names(self, node):
-        logger.debug("In ProcessingBase.retrieve_call_names")
+        #logger.debug("In ProcessingBase.retrieve_call_names")
         names = set()
         if isinstance(node.func, ast.Name):
             defi = self.scope_manager.get_def(self.current_ns, node.func.id)
@@ -604,27 +604,27 @@ class ProcessingBase(ast.NodeVisitor):
                 if self.closured.get(n, None):
                     names |= self.closured.get(n)
 
-        logger.debug("Exit ProcessingBase.retrieve_call_names")
+        #logger.debug("Exit ProcessingBase.retrieve_call_names")
         return names
 
     def analyze_submodules(self, cls, *args, **kwargs):
-        logger.debug("In ProcessingBase.analyze_submodules")
+        #logger.debug("In ProcessingBase.analyze_submodules")
         imports = self.import_manager.get_imports(self.modname)
 
         for imp in imports:
             self.analyze_submodule(cls, imp, *args, **kwargs)
-        logger.debug("Exit ProcessingBase.analyze_submodules")
+        #logger.debug("Exit ProcessingBase.analyze_submodules")
 
     def analyze_submodule(self, cls, imp, *args, **kwargs):
-        logger.debug("In ProcessingBase.analyze_submodule")
+        #logger.debug("In ProcessingBase.analyze_submodule")
         if imp in self.get_modules_analyzed():
-            logger.debug("Exit ProcessingBase.analyze_submodule: Skip analyzed module: %s" % imp)
+            #logger.debug("Exit ProcessingBase.analyze_submodule: Skip analyzed module: %s" % imp)
             return
 
         fname = self.import_manager.get_filepath(imp)
 
         if not fname or not self.import_manager.get_mod_dir() in fname:
-            logger.debug("Exit ProcessingBase.analyze_submodule: Fail to locate module source:  %s" % imp)
+            #logger.debug("Exit ProcessingBase.analyze_submodule: Fail to locate module source:  %s" % imp)
             return
 
         self.import_manager.set_current_mod(imp, fname)
@@ -634,13 +634,13 @@ class ProcessingBase(ast.NodeVisitor):
         self.merge_modules_analyzed(visitor.get_modules_analyzed())
 
         self.import_manager.set_current_mod(self.modname, self.filename)
-        logger.debug("Exit ProcessingBase.analyze_submodule")
+        #logger.debug("Exit ProcessingBase.analyze_submodule")
 
     def find_cls_fun_ns(self, cls_name, fn):
         #logger.debug("In ProcessingBase.find_cls_fun_ns")
         cls = self.class_manager.get(cls_name)
         if not cls:
-            logger.debug("Exit ProcessingBase.find_cls_fun_ns: No class manager found")
+            #logger.debug("Exit ProcessingBase.find_cls_fun_ns: No class manager found")
             return set()
 
         ext_names = set()
@@ -653,7 +653,7 @@ class ProcessingBase(ast.NodeVisitor):
                 names.add(ns)
 
             if self.def_manager.get(ns):
-                logger.debug("Exit ProcessingBase.find_cls_fun_ns: Found from definition manager")
+                #logger.debug("Exit ProcessingBase.find_cls_fun_ns: Found from definition manager")
                 return names
 
             parent = self.def_manager.get(item)
@@ -668,7 +668,7 @@ class ProcessingBase(ast.NodeVisitor):
         return ext_names
 
     def add_ext_mod_node(self, name):
-        logger.debug("In ProcessingBase.add_ext_mod_node")
+        #logger.debug("In ProcessingBase.add_ext_mod_node")
         ext_modname = name.split(".")[0]
         ext_mod = self.module_manager.get(ext_modname)
         if not ext_mod:
@@ -676,4 +676,4 @@ class ProcessingBase(ast.NodeVisitor):
             ext_mod.add_method(ext_modname)
 
         ext_mod.add_method(name)
-        logger.debug("Exit ProcessingBase.add_ext_mod_node")
+        #logger.debug("Exit ProcessingBase.add_ext_mod_node")
