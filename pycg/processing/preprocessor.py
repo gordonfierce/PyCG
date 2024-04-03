@@ -144,7 +144,7 @@ class PreProcessor(ProcessingBase):
         of parent directories (e.g. in this case level=1)
         """
         logger.debug("In PreProcessor.visit_Import")
-        logger.debug("%s"%(ast.dump(node, indent=4)))
+        # logger.debug("%s"%(ast.dump(node, indent=4)))
         logger.debug("--------------------")
 
         def handle_src_name(name):

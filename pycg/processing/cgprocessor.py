@@ -292,7 +292,7 @@ class CallGraphProcessor(ProcessingBase):
                 create_ext_edge(name, utils.constants.BUILTIN_NAME, node.lineno, self.modname)
             elif isinstance(node.func, ast.Attribute):
                 #logger.debug("I-3")
-                logger.debug(ast.dump(node, indent=4))
+                # logger.debug(ast.dump(node, indent=4))
                 try:
                     lhs = ""
                     lhs_obj = node.func
