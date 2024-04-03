@@ -85,11 +85,11 @@ class DefinitionManager(object):
     def transitive_closure(self):
         closured = {}
         def dfs(defi):
-            name_pointer = defi.get_name_pointer()
-            new_set = set()
             # bottom
             if not closured.get(defi.get_ns(), None) == None:
                 return closured[defi.get_ns()]
+            name_pointer = defi.get_name_pointer()
+            new_set = set()
 
             if not name_pointer.get():
                 new_set.add(defi.get_ns())
@@ -102,7 +102,7 @@ class DefinitionManager(object):
                 items = dfs(self.defs[name])
                 if not items:
                     items = set([name])
-                new_set = new_set.union(items)
+                new_set.update(items)
 
             closured[defi.get_ns()] = new_set
             return closured[defi.get_ns()]

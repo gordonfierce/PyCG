@@ -70,7 +70,7 @@ class ProcessingBase(ast.NodeVisitor):
 
     def merge_modules_analyzed(self, analyzed):
         logger.debug("In ProcessingBase.merge_modules_analyzed")
-        self.modules_analyzed = self.modules_analyzed.union(analyzed)
+        self.modules_analyzed.update(analyzed)
         logger.debug("Exit ProcessingBase.merge_modules_analyzed")
 
     @property
@@ -430,7 +430,7 @@ class ProcessingBase(ast.NodeVisitor):
             if not parent or not isinstance(parent, Definition):
                 continue
             if getattr(self, "closured", None) and self.closured.get(parent.get_ns(), None):
-                names = names.union(self.closured.get(parent.get_ns()))
+                names.update(self.closured.get(parent.get_ns()))
             else:
                 names.add(parent.get_ns())
         #logger.debug("Exit ProcessingBase._retrieve_parent_names")
@@ -457,7 +457,7 @@ class ProcessingBase(ast.NodeVisitor):
                     cls_names = self.find_cls_fun_ns(defi.get_ns(), node.attr)
                     if cls_names:
                         #logger.debug("D-3.1-2")
-                        names = names.union(cls_names)
+                        names.update(cls_names)
                 #logger.debug("D-3.2")
                 if defi.is_function_def() or defi.is_module_def():
                     #logger.debug("D-3.3")

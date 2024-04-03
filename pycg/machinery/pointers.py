@@ -34,7 +34,7 @@ class Pointer(object):
 
     def add_set(self, s):
         #logger.debug("In Pointer.add_set")
-        self.values = self.values.union(s)
+        self.values.update(s)
 
     def get(self):
         #logger.debug("In Pointer.get")
@@ -42,7 +42,7 @@ class Pointer(object):
 
     def merge(self, pointer):
         #logger.debug("In Pointer.merge")
-        self.values = self.values.union(pointer.values)
+        self.values.update(pointer.values)
 
 class LiteralPointer(Pointer):
     STR_LIT = "STRING"
@@ -88,7 +88,7 @@ class NamePointer(Pointer):
         if isinstance(item, str):
             self.args[name].add(item)
         elif isinstance(item, set):
-            self.args[name] = self.args[name].union(item)
+            self.args[name].update(item)
         else:
             raise Exception()
 
