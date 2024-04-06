@@ -208,9 +208,9 @@ class ProcessingBase(ast.NodeVisitor):
 
         for d in decoded:
             if isinstance(d, Definition):
-                defi.get_name_pointer().add(d.get_ns())
+                defi.name_pointer.add(d.fullns)
             else:
-                defi.get_lit_pointer().add(d)
+                defi.literal_pointer.add(d)
         logger.debug("Exit ProcessingBase._handle_assign")
         return defi
 
@@ -291,11 +291,11 @@ class ProcessingBase(ast.NodeVisitor):
 
                 return_ns = utils.constants.INVALID_NAME
                 if called_def.is_function_def():
-                    return_ns = utils.join_ns(called_def.get_ns(), utils.constants.RETURN_NAME)
+                    return_ns = utils.join_ns(called_def.fullns, utils.constants.RETURN_NAME)
                 elif called_def.is_class_def():
-                    return_ns = called_def.get_ns()
+                    return_ns = called_def.fullns
                 elif called_def.is_ext_def():
-                    return_ns_set = called_def.get_name_pointer().values
+                    return_ns_set = called_def.name_pointer.values
                     if return_ns_set:
                         return_ns = next(iter(return_ns_set))
                 defi = self.def_manager.get(return_ns)
@@ -415,7 +415,7 @@ class ProcessingBase(ast.NodeVisitor):
             if not name or not isinstance(name, Definition):
                 continue
 
-            for base in self.closured.get(name.get_ns(), []):
+            for base in self.closured.get(name.fullns, []):
                 cls = self.class_manager.get(base)
                 if not cls:
                     continue
@@ -439,10 +439,10 @@ class ProcessingBase(ast.NodeVisitor):
         for parent in decoded:
             if not parent or not isinstance(parent, Definition):
                 continue
-            if getattr(self, "closured", None) and self.closured.get(parent.get_ns(), None):
-                names.update(self.closured.get(parent.get_ns()))
+            if getattr(self, "closured", None) and self.closured.get(parent.fullns, None):
+                names.update(self.closured.get(parent.fullns))
             else:
-                names.add(parent.get_ns())
+                names.add(parent.fullns)
         #logger.debug("Exit ProcessingBase._retrieve_parent_names")
         return names
 
@@ -464,7 +464,7 @@ class ProcessingBase(ast.NodeVisitor):
                 #logger.debug("D-3.1")
                 if defi.is_class_def():
                     #logger.debug("D-3.1-1")
-                    cls_names = self.find_cls_fun_ns(defi.get_ns(), node.attr)
+                    cls_names = self.find_cls_fun_ns(defi.fullns, node.attr)
                     if cls_names:
                         #logger.debug("D-3.1-2")
                         names.update(cls_names)
@@ -497,7 +497,7 @@ class ProcessingBase(ast.NodeVisitor):
             self.visit(arg)
             decoded = self.decode_node(arg)
             if defi.is_function_def():
-                pos_arg_names = defi.get_name_pointer().get_pos_arg(pos)
+                pos_arg_names = defi.name_pointer.get_pos_arg(pos)
                 # if arguments for this position exist update their namespace
                 if not pos_arg_names:
                     continue
@@ -507,21 +507,21 @@ class ProcessingBase(ast.NodeVisitor):
                         continue
                     for d in decoded:
                         if isinstance(d, Definition):
-                            arg_def.get_name_pointer().add(d.get_ns())
+                            arg_def.name_pointer.add(d.fullns)
                         else:
-                            arg_def.get_lit_pointer().add(d)
+                            arg_def.literal_pointer.add(d)
             else:
                 for d in decoded:
                     if isinstance(d, Definition):
-                        defi.get_name_pointer().add_pos_arg(pos, None, d.get_ns())
+                        defi.name_pointer.add_pos_arg(pos, None, d.fullns)
                     else:
-                        defi.get_name_pointer().add_pos_lit_arg(pos, None, d)
+                        defi.name_pointer.add_pos_lit_arg(pos, None, d)
 
         for keyword in node.keywords:
             self.visit(keyword.value)
             decoded = self.decode_node(keyword.value)
             if defi.is_function_def():
-                arg_names = defi.get_name_pointer().get_arg(keyword.arg)
+                arg_names = defi.name_pointer.get_arg(keyword.arg)
                 if not arg_names:
                     continue
                 for name in arg_names:
@@ -530,15 +530,15 @@ class ProcessingBase(ast.NodeVisitor):
                         continue
                     for d in decoded:
                         if isinstance(d, Definition):
-                            arg_def.get_name_pointer().add(d.get_ns())
+                            arg_def.name_pointer.add(d.fullns)
                         else:
-                            arg_def.get_lit_pointer().add(d)
+                            arg_def.literal_pointer.add(d)
             else:
                 for d in decoded:
                     if isinstance(d, Definition):
-                        defi.get_name_pointer().add_arg(keyword.arg, d.get_ns())
+                        defi.name_pointer.add_arg(keyword.arg, d.fullns)
                     else:
-                        defi.get_name_pointer().add_lit_arg(keyword.arg, d)
+                        defi.name_pointer.add_lit_arg(keyword.arg, d)
         #logger.debug("Exit ProcessingBase.loiterate_call_args")
 
     def retrieve_subscript_names(self, node) -> Set[str]:
@@ -562,17 +562,17 @@ class ProcessingBase(ast.NodeVisitor):
         full_names = set()
         # get all names associated with this variable name
         for n in val_names:
-            if n and isinstance(n, Definition) and n.get_ns() in self.closured:
-                decoded_vals |= self.closured.get(n.get_ns())
+            if n and isinstance(n, Definition) and n.fullns in self.closured:
+                decoded_vals |= self.closured[n.fullns]
         for s in sl_names:
-            if isinstance(s, Definition) and s.get_ns() in self.closured:
+            if isinstance(s, Definition) and s.fullns in self.closured:
                 # we care about the literals pointed by the name
                 # not the namespaces, so retrieve the literals pointed
-                for name in self.closured.get(s.get_ns()):
+                for name in self.closured.get(s.fullns):
                     defi = self.def_manager.get(name)
                     if not defi:
                         continue
-                    keys |= defi.get_lit_pointer().values
+                    keys |= defi.literal_pointer.values
             elif isinstance(s, str):
                 keys.add(s)
             elif isinstance(s, int):
@@ -596,7 +596,7 @@ class ProcessingBase(ast.NodeVisitor):
         if isinstance(node.func, ast.Name):
             defi = self.scope_manager.get_def(self.current_ns, node.func.id)
             if defi:
-                names = self.closured.get(defi.get_ns(), set())
+                names = self.closured.get(defi.fullns, set())
         elif isinstance(node.func, ast.Call) and self.last_called_names:
             for name in self.last_called_names:
                 return_ns = utils.join_ns(name, utils.constants.RETURN_NAME)
@@ -605,7 +605,7 @@ class ProcessingBase(ast.NodeVisitor):
                     continue
                 for ret in returns:
                     defi = self.def_manager.get(ret)
-                    names.add(defi.get_ns())
+                    names.add(defi.fullns)
         elif isinstance(node.func, ast.Attribute):
             names = self._retrieve_attribute_names(node.func)
         elif isinstance(node.func, ast.Subscript):

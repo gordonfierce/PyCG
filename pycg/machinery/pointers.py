@@ -171,9 +171,9 @@ class NamePointer(Pointer):
         # logger.debug("In NamePointer.merge")
         super().merge(pointer)
         if hasattr(pointer, "get_pos_names"):
-            for pos, name in pointer.get_pos_names().items():
+            for pos, name in pointer.pos_to_name.items():
                 self.pos_to_name[pos] = name
-            for name, arg in pointer.get_args().items():
+            for name, arg in pointer.args.items():
                 self.add_arg(name, arg)
 
 

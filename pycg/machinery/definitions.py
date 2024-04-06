@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 from typing import Dict, Set, Optional
 
+from typing import Dict, Set, Optional
+
 
 class DefinitionManager:
     def __init__(self) -> None:
@@ -35,9 +37,9 @@ class DefinitionManager:
     def create(self, ns: str, def_type) -> "Definition":
         if not ns or not isinstance(ns, str):
             raise DefinitionError("Invalid namespace argument")
-        if not def_type in Definition.types:
+        if def_type not in Definition.types:
             raise DefinitionError("Invalid def type argument")
-        if self.get(ns):
+        if ns in self.defs:
             raise DefinitionError("Definition already exists")
 
         self.defs[ns] = Definition(ns, def_type)
@@ -51,8 +53,8 @@ class DefinitionManager:
         if defi.is_function_def():
             return_ns = utils.join_ns(ns, utils.constants.RETURN_NAME)
             self.defs[return_ns] = Definition(return_ns, utils.constants.NAME_DEF)
-            self.defs[return_ns].get_name_pointer().add(
-                utils.join_ns(defi.get_ns(), utils.constants.RETURN_NAME)
+            self.defs[return_ns].name_pointer.add(
+                utils.join_ns(defi.fullns, utils.constants.RETURN_NAME)
             )
 
         return self.defs[ns]
@@ -91,16 +93,15 @@ class DefinitionManager:
         closured: Dict[str, Set[str]] = {}
 
         def dfs(defi: Definition):
-            # bottom
-            if not closured.get(defi.get_ns(), None) == None:
-                return closured[defi.get_ns()]
-            name_pointer = defi.get_name_pointer()
+            if not closured.get(defi.fullns, None) == None:
+                return closured[defi.fullns]
+            name_pointer = defi.name_pointer
             new_set = set()
 
             if not name_pointer.values:
-                new_set.add(defi.get_ns())
+                new_set.add(defi.fullns)
 
-            closured[defi.get_ns()] = new_set
+            closured[defi.fullns] = new_set
 
             for name in name_pointer.values:
                 if not self.defs.get(name, None):
@@ -110,11 +111,11 @@ class DefinitionManager:
                     items = set([name])
                 new_set.update(items)
 
-            closured[defi.get_ns()] = new_set
-            return closured[defi.get_ns()]
+            closured[defi.fullns] = new_set
+            return new_set
 
-        for ns, current_def in self.defs.items():
-            if closured.get(current_def.get_ns(), None) == None:
+        for current_def in self.defs.values():
+            if closured.get(current_def.fullns, None) == None:
                 dfs(current_def)
 
         return closured
@@ -131,7 +132,7 @@ class DefinitionManager:
                     continue
                 if pointsto_arg == name:
                     continue
-                pointsto_arg_def = self.defs[pointsto_arg].get_name_pointer()
+                pointsto_arg_def = self.defs[pointsto_arg].name_pointer
                 if pointsto_arg_def == pointsto_args:
                     continue
 
@@ -164,7 +165,7 @@ class DefinitionManager:
             for ns, current_def in self.defs.items():
                 #logger.info("Def-idx2-%d"%(idx2))
                 # the name pointer of the definition we're currently iterating
-                current_name_pointer = current_def.get_name_pointer()
+                current_name_pointer = current_def.name_pointer
                 #print("Name point: %s"%(str(current_name_pointer)))
                 # iterate the names the current definition points to items
                 # for name in current_name_pointer.get():
@@ -176,7 +177,7 @@ class DefinitionManager:
                     if name == ns:
                         continue
 
-                    pointsto_name_pointer = self.defs[name].get_name_pointer()
+                    pointsto_name_pointer: NamePointer = self.defs[name].name_pointer
                     # iterate the arguments of the definition we're currently iterating
                     for arg_name, arg in current_name_pointer.get_args().items():
                         pos = current_name_pointer.get_pos_of_name(arg_name)
@@ -190,7 +191,7 @@ class DefinitionManager:
                             if not pointsto_args:
                                 pointsto_name_pointer.add_arg(arg_name, arg)
                                 continue
-                        changed_something = changed_something or update_pointsto_args(pointsto_args, arg, current_def.get_ns())
+                        changed_something = changed_something or update_pointsto_args(pointsto_args, arg, current_def.fullns)
             if not changed_something:
                 break
 

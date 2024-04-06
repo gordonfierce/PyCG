@@ -187,7 +187,7 @@ class ImportManager:
         # Add an edge and continue.
         # TODO: identify a way to include frozen modules
         logger.debug("In ImportManager.handle_import")
-        root = name.split(".")[0]
+        root = name.partition(".")[0]
         if root in sys.builtin_module_names:
             logger.debug("Handling builtin modules: %s" % root)
             self.create_edge(root)

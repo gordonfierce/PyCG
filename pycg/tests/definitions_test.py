@@ -53,8 +53,8 @@ class DefinitionManagerTest(TestBase):
     def test_assign(self):
         dm = DefinitionManager()
         defi1 = dm.create("defi1", utils.constants.NAME_DEF)
-        defi1.get_name_pointer().add("item1")
-        defi1.get_name_pointer().add("item2")
+        defi1.name_pointer.add("item1")
+        defi1.name_pointer.add("item2")
         defi1.get_name_pointer().add_arg(0, "arg")
 
         defi2 = dm.assign("defi2", defi1)

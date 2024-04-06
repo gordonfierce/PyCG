@@ -174,11 +174,11 @@ class PreProcessor(ProcessingBase):
             def create_def(scope, name, imported_def):
                 logger.debug("In PreProcessor.visit_Import.handle_scopes.create_def")
                 if not name in scope.get_defs():
-                    def_ns = utils.join_ns(scope.get_ns(), name)
+                    def_ns = utils.join_ns(scope.fullns, name)
                     defi = self.def_manager.get(def_ns)
                     if not defi:
                         defi = self.def_manager.assign(def_ns, imported_def)
-                    defi.get_name_pointer().add(imported_def.get_ns())
+                    defi.name_pointer.add(imported_def.fullns)
                     current_scope.add_def(name, defi)
                 logger.debug("Exit PreProcessor.visit_Import.handle_scopes.create_def")
 
@@ -188,7 +188,7 @@ class PreProcessor(ProcessingBase):
                 if tgt_name == "*":
                     for name, defi in imported_scope.get_defs().items():
                         create_def(current_scope, name, defi)
-                        current_scope.get_def(name).get_name_pointer().add(defi.get_ns())
+                        current_scope.get_def(name).name_pointer.add(defi.fullns)
                 else:
                     # if it exists in the imported scope then copy it
                     defi = imported_scope.get_def(imp_name)
@@ -198,7 +198,7 @@ class PreProcessor(ProcessingBase):
 
                     if defi:
                         create_def(current_scope, tgt_name, defi)
-                        current_scope.get_def(tgt_name).get_name_pointer().add(defi.get_ns())
+                        current_scope.get_def(tgt_name).name_pointer.add(defi.fullns)
             logger.debug("Exit PreProcessor.visit_Import.handle_scopes")
 
         def add_external_def(name, target):
@@ -210,11 +210,11 @@ class PreProcessor(ProcessingBase):
             scope = self.scope_manager.get_scope(self.current_ns)
             if target != "*":
                 # add a def for the target that points to the name
-                tgt_ns = utils.join_ns(scope.get_ns(), target)
+                tgt_ns = utils.join_ns(scope.fullns, target)
                 tgt_defi = self.def_manager.get(tgt_ns)
                 if not tgt_defi:
                     tgt_defi = self.def_manager.create(tgt_ns, utils.constants.EXT_DEF)
-                tgt_defi.get_name_pointer().add(defi.get_ns())
+                tgt_defi.name_pointer.add(defi.fullns)
                 scope.add_def(target, tgt_defi)
             logger.debug("Exit PreProcessor.visit_Import.add_external_def")
 
@@ -292,10 +292,10 @@ class PreProcessor(ProcessingBase):
         mod = self.module_manager.get(self.modname)
         if not mod:
             mod = self.module_manager.create(self.modname, self.filename)
-        mod.add_method(fn_def.get_ns(), node.lineno, self._get_last_line(node))
+        mod.add_method(fn_def.fullns, node.lineno, self._get_last_line(node))
 
         defs_to_create = []
-        name_pointer = fn_def.get_name_pointer()
+        name_pointer = fn_def.name_pointer
 
         # TODO: static methods can be created using the staticmethod() function too
         is_static_method = False
@@ -305,22 +305,22 @@ class PreProcessor(ProcessingBase):
                     is_static_method = True
 
         if current_def.is_class_def() and not is_static_method and node.args.args:
-            arg_ns = utils.join_ns(fn_def.get_ns(), node.args.args[0].arg)
+            arg_ns = utils.join_ns(fn_def.fullns, node.args.args[0].arg)
             arg_def = self.def_manager.get(arg_ns)
             if not arg_def:
                 arg_def = self.def_manager.create(arg_ns, utils.constants.NAME_DEF)
-            arg_def.get_name_pointer().add(current_def.get_ns())
+            arg_def.name_pointer.add(current_def.fullns)
 
-            self.scope_manager.handle_assign(fn_def.get_ns(), arg_def.get_name(), arg_def)
+            self.scope_manager.handle_assign(fn_def.fullns, arg_def.get_name(), arg_def)
             node.args.args = node.args.args[1:]
 
         for pos, arg in enumerate(node.args.args):
-            arg_ns = utils.join_ns(fn_def.get_ns(), arg.arg)
+            arg_ns = utils.join_ns(fn_def.fullns, arg.arg)
             name_pointer.add_pos_arg(pos, arg.arg, arg_ns)
             defs_to_create.append(arg_ns)
 
         for arg in node.args.kwonlyargs:
-            arg_ns = utils.join_ns(fn_def.get_ns(), arg.arg)
+            arg_ns = utils.join_ns(fn_def.fullns, arg.arg)
             # TODO: add_name_arg function
             name_pointer.add_name_arg(arg.arg, arg_ns)
             defs_to_create.append(arg_ns)
@@ -336,16 +336,16 @@ class PreProcessor(ProcessingBase):
             if not arg_def:
                 arg_def = self.def_manager.create(arg_ns, utils.constants.NAME_DEF)
 
-            self.scope_manager.handle_assign(fn_def.get_ns(), arg_def.get_name(), arg_def)
+            self.scope_manager.handle_assign(fn_def.fullns, arg_def.get_name(), arg_def)
 
             # has a default
-            arg_name = arg_ns.split(".")[-1]
+            arg_name = arg_ns.rpartition(".")[-1]
             if defaults.get(arg_name, None):
                 for default in defaults[arg_name]:
                     if isinstance(default, Definition):
-                        arg_def.get_name_pointer().add(default.get_ns())
+                        arg_def.name_pointer.add(default.fullns)
                         if default.is_function_def():
-                            arg_def.get_name_pointer().add(default.get_ns())
+                            arg_def.name_pointer.add(default.fullns)
                         else:
                             arg_def.merge(default)
                     else:
@@ -407,7 +407,7 @@ class PreProcessor(ProcessingBase):
             return
 
         if defi.is_class_def():
-            defi = self.def_manager.get(utils.join_ns(defi.get_ns(), utils.constants.CLS_INIT))
+            defi = self.def_manager.get(utils.join_ns(defi.fullns, utils.constants.CLS_INIT))
             if not defi:
                 return
 
@@ -441,15 +441,15 @@ class PreProcessor(ProcessingBase):
         mod = self.module_manager.get(self.modname)
         if not mod:
             mod = self.module_manager.create(self.modname, self.filename)
-        mod.add_method(cls_def.get_ns(), node.lineno, self._get_last_line(node))
+        mod.add_method(cls_def.fullns, node.lineno, self._get_last_line(node))
 
         # iterate bases to compute MRO for the class
-        cls = self.class_manager.get(cls_def.get_ns())
+        cls = self.class_manager.get(cls_def.fullns)
         if not cls:
-            cls = self.class_manager.create(cls_def.get_ns(), self.modname)
+            cls = self.class_manager.create(cls_def.fullns, self.modname)
             for nam in node.bases:
                 if isinstance(nam, ast.Name):
-                    self.class_manager.add_inheritance(cls_def.get_ns(), nam.id)
+                    self.class_manager.add_inheritance(cls_def.fullns, nam.id)
 
         super().visit_ClassDef(node)
 

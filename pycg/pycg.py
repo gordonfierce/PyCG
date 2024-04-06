@@ -67,7 +67,7 @@ class CallGraphGenerator:
     def extract_state(self) -> Dict[str, Dict]:
         state: Dict[str, Dict] = {}
         state["defs"] = {}
-        for key, defi in self.def_manager.get_defs().items():
+        for key, defi in self.def_manager.defs.items():
             state["defs"][key] = {
                 "names": defi.get_name_pointer().values.copy(),
                 "lit": defi.get_lit_pointer().values.copy()
@@ -75,7 +75,7 @@ class CallGraphGenerator:
 
         state["scopes"] = {}
         for key, scope in self.scope_manager.get_scopes().items():
-            state["scopes"][key] = set([x.get_ns() for (_, x) in scope.get_defs().items()])
+            state["scopes"][key] = set(x.fullns for x in scope.get_defs().values())
 
         state["classes"] = {}
         for key, ch in self.class_manager.get_classes().items():
@@ -247,14 +247,14 @@ class CallGraphGenerator:
         return res
 
     def output_internal_mods(self):
-        return self._generate_mods(self.module_manager.get_internal_modules())
+        return self._generate_mods(self.module_manager.internal)
 
     def output_external_mods(self):
-        return self._generate_mods(self.module_manager.get_external_modules())
+        return self._generate_mods(self.module_manager.external)
 
     def output_functions(self):
         functions = []
-        for ns, defi in self.def_manager.get_defs().items():
+        for ns, defi in self.def_manager.defs.items():
             if defi.is_function_def():
                 functions.append(ns)
         return functions
@@ -269,4 +269,4 @@ class CallGraphGenerator:
         return classes
 
     def get_as_graph(self):
-        return self.def_manager.get_defs().items()
+        return self.def_manager.defs.items()

@@ -93,7 +93,7 @@ class CallGraphProcessor(ProcessingBase):
         for item in iter_decoded:
             if not isinstance(item, Definition):
                 continue
-            names: Set[str] = self.closured.get(item.get_ns(), set())
+            names: Set[str] = self.closured.get(item.fullns, set())
             for name in names:
                 iter_ns = utils.join_ns(name, utils.constants.ITER_METHOD)
                 next_ns = utils.join_ns(name, utils.constants.NEXT_METHOD)
@@ -128,7 +128,7 @@ class CallGraphProcessor(ProcessingBase):
         for d in decoded:
             if not isinstance(d, Definition):
                 continue
-            names: Set[str] = self.closured.get(d.get_ns(), set())
+            names: Set[str] = self.closured.get(d.fullns, set())
             for name in names:
                 pointer_def = self.def_manager.get(name)
                 if pointer_def.is_class_def():
@@ -152,7 +152,7 @@ class CallGraphProcessor(ProcessingBase):
             for d in decoded:
                 if not isinstance(d, Definition):
                     continue
-                names: Set[str] = self.closured.get(d.get_ns(), set())
+                names: Set[str] = self.closured.get(d.fullns, set())
                 for name in names:
                     self.call_graph.add_edge(self.current_method, name, mod=self.modname)
 
@@ -392,7 +392,7 @@ class CallGraphProcessor(ProcessingBase):
         while current_scope:
             for name, defi in current_scope.get_defs().items():
                 if defi.is_function_def() and not name in names:
-                    closured = self.closured.get(defi.get_ns())
+                    closured = self.closured.get(defi.fullns)
                     for item in closured:
                         reachable.add(item)
                     names.add(name)
@@ -435,8 +435,8 @@ class CallGraphProcessor(ProcessingBase):
             return names
 
         defi = self.scope_manager.get_def(self.current_ns, node.id)
-        if defi and self.closured.get(defi.get_ns()):
-            for id in self.closured.get(defi.get_ns()):
+        if defi and self.closured.get(defi.fullns):
+            for id in self.closured.get(defi.fullns):
                 names.append(id + "." + name)
 
         logger.debug("Exit CallGraphProcessor.get_full_attr_names")
