@@ -222,9 +222,9 @@ class PostProcessor(ProcessingBase):
                     continue
                 #logger.debug("CC-9")
                 names = set()
-                if base_def.get_name_pointer().get():
+                if base_def.get_name_pointer().values:
                     #logger.debug("CC-10")
-                    names = base_def.get_name_pointer().get()
+                    names = base_def.get_name_pointer().values
                     #logger.debug("CC-11")
                 else:
                     #logger.debug("CC-12")
@@ -326,7 +326,7 @@ class PostProcessor(ProcessingBase):
             for k in decoded_key:
                 if isinstance(k, Definition):
                     # get literal pointer
-                    names = k.get_lit_pointer().get()
+                    names = k.get_lit_pointer().values
                 else:
                     names = set()
                     if isinstance(k, list):

@@ -69,8 +69,8 @@ class CallGraphGenerator:
         state["defs"] = {}
         for key, defi in self.def_manager.get_defs().items():
             state["defs"][key] = {
-                "names": defi.get_name_pointer().get().copy(),
-                "lit": defi.get_lit_pointer().get().copy()
+                "names": defi.get_name_pointer().values.copy(),
+                "lit": defi.get_lit_pointer().values.copy()
             }
 
         state["scopes"] = {}

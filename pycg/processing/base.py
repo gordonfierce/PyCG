@@ -295,7 +295,7 @@ class ProcessingBase(ast.NodeVisitor):
                 elif called_def.is_class_def():
                     return_ns = called_def.get_ns()
                 elif called_def.is_ext_def():
-                    return_ns_set = called_def.get_name_pointer().get()
+                    return_ns_set = called_def.get_name_pointer().values
                     if return_ns_set:
                         return_ns = next(iter(return_ns_set))
                 defi = self.def_manager.get(return_ns)
@@ -572,7 +572,7 @@ class ProcessingBase(ast.NodeVisitor):
                     defi = self.def_manager.get(name)
                     if not defi:
                         continue
-                    keys |= defi.get_lit_pointer().get()
+                    keys |= defi.get_lit_pointer().values
             elif isinstance(s, str):
                 keys.add(s)
             elif isinstance(s, int):

@@ -97,12 +97,12 @@ class DefinitionManager:
             name_pointer = defi.get_name_pointer()
             new_set = set()
 
-            if not name_pointer.get():
+            if not name_pointer.values:
                 new_set.add(defi.get_ns())
 
             closured[defi.get_ns()] = new_set
 
-            for name in name_pointer.get():
+            for name in name_pointer.values:
                 if not self.defs.get(name, None):
                     continue
                 items = dfs(self.defs[name])
@@ -168,7 +168,7 @@ class DefinitionManager:
                 #print("Name point: %s"%(str(current_name_pointer)))
                 # iterate the names the current definition points to items
                 # for name in current_name_pointer.get():
-                for name in current_name_pointer.get().copy():
+                for name in current_name_pointer.values.copy():
 
                     # get the name pointer of the points to name
                     if not self.defs.get(name, None):

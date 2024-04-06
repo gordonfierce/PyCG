@@ -70,7 +70,7 @@ class DefinitionManagerTest(TestBase):
         fndefi2 = dm.assign("fndefi2", fndefi)
         return_def = dm.get("{}.{}".format("fndefi2", utils.constants.RETURN_NAME))
         self.assertIsNotNone(return_def)
-        self.assertEqual(return_def.get_name_pointer().get(), set(["{}.{}".format("fndefi", utils.constants.RETURN_NAME)]))
+        self.assertEqual(return_def.get_name_pointer().values, set(["{}.{}".format("fndefi", utils.constants.RETURN_NAME)]))
 
 
     def test_handle_function_def(self):

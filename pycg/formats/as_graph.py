@@ -29,5 +29,5 @@ class AsGraph(BaseFormatter):
         graph = self.cg_generator.get_as_graph()
         output = {}
         for key, defi in graph:
-            output[key] = list(defi.get_name_pointer().get().copy())
+            output[key] = list(defi.get_name_pointer().values.copy())
         return output
