@@ -379,14 +379,14 @@ class ProcessingBase(ast.NodeVisitor):
         elif isinstance(node, ast.Subscript):
             #logger.debug("DEC-12")
             names = self.retrieve_subscript_names(node)
-            defis = []
-            for name in names:
-                defi = self.def_manager.get(name)
-                if defi:
-                    defis.append(defi)
+            definitions = [definition for name in names if (definition := self.def_manager.get(name)) is not None]
+            # for name in names:
+            #     defi = self.def_manager.get(name)
+            #     if defi:
+            #         defis.append(defi)
             #logger.debug("Exit ProcessingBase.decode_node: Node type: Subscript")
             node_decoder_counter -= 1
-            return defis
+            return definitions
 
         #logger.debug("Exit ProcessingBase.decode_node: Invalid node type")
         node_decoder_counter -= 1
@@ -657,15 +657,13 @@ class ProcessingBase(ast.NodeVisitor):
         ext_names = set()
         for item in cls.get_mro():
             ns = utils.join_ns(item, fn)
-            names = set()
-            if getattr(self, "closured", None) and self.closured.get(ns, None):
-                names = self.closured[ns]
-            else:
-                names.add(ns)
 
             if self.def_manager.get(ns):
                 #logger.debug("Exit ProcessingBase.find_cls_fun_ns: Found from definition manager")
-                return names
+                if hasattr(self, "closured") and self.closured.get(ns, None):
+                    return self.closured[ns]
+                else:
+                    return set(ns)
 
             parent = self.def_manager.get(item)
             if parent and parent.is_ext_def():
@@ -680,7 +678,7 @@ class ProcessingBase(ast.NodeVisitor):
 
     def add_ext_mod_node(self, name: str) -> None:
         # logger.debug("In ProcessingBase.add_ext_mod_node")
-        ext_modname = name.split(".")[0]
+        ext_modname = name.partition(".")[0]
         ext_mod = self.module_manager.get(ext_modname)
         if not ext_mod:
             ext_mod = self.module_manager.create(ext_modname, None, external=True)
