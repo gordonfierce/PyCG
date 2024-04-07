@@ -93,7 +93,7 @@ class DefinitionManager:
         closured: Dict[str, Set[str]] = {}
 
         def dfs(defi: Definition):
-            if not closured.get(defi.fullns, None) == None:
+            if defi.fullns in closured:
                 return closured[defi.fullns]
             name_pointer = defi.name_pointer
             new_set = set()
@@ -115,7 +115,7 @@ class DefinitionManager:
             return new_set
 
         for current_def in self.defs.values():
-            if closured.get(current_def.fullns, None) == None:
+            if current_def.fullns not in closured:
                 dfs(current_def)
 
         return closured
@@ -179,7 +179,7 @@ class DefinitionManager:
 
                     pointsto_name_pointer: NamePointer = self.defs[name].name_pointer
                     # iterate the arguments of the definition we're currently iterating
-                    for arg_name, arg in current_name_pointer.get_args().items():
+                    for arg_name, arg in current_name_pointer.args.items():
                         pos = current_name_pointer.get_pos_of_name(arg_name)
                         if not pos is None:
                             pointsto_args = pointsto_name_pointer.get_pos_arg(pos)
