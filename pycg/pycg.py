@@ -158,7 +158,7 @@ class CallGraphGenerator(object):
                                 modules_analyzed=modules_analyzed, *args, **kwargs)
                 logger.info("Done analysis: %s"%(input_file))
                 processor.analyze()
-                modules_analyzed = modules_analyzed.union(processor.get_modules_analyzed())
+                modules_analyzed.update(processor.get_modules_analyzed())
 
                 if install_hooks:
                     self.remove_import_hooks()

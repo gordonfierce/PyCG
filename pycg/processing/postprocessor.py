@@ -174,7 +174,7 @@ class PostProcessor(ProcessingBase):
                         if self.closured.get(return_ns, None) == None:
                             continue
 
-                        new_previous_names = new_previous_names.union(self.closured.get(return_ns))
+                        new_previous_names.update(self.closured.get(return_ns))
 
                         for prev_name in previous_names:
                             pos_arg_names = d.get_name_pointer().get_pos_arg(0)
