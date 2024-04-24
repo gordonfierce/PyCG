@@ -46,8 +46,7 @@ class PreProcessor(ProcessingBase):
         modules_analyzed: Set[str],
     ) -> None:
         logger.debug(
-            "In PreProcessor.__init__: filename: %s; mod_name: %s; analyzed_modules: %s"
-            %(filename, modname, str(modules_analyzed))
+            f"In PreProcessor.__init__: filename: {filename}; mod_name: {modname}; analyzed_modules: {str(modules_analyzed)}"
         )
         super().__init__(filename, modname, modules_analyzed)
 
@@ -59,10 +58,10 @@ class PreProcessor(ProcessingBase):
         self.def_manager: DefinitionManager = def_manager
         self.class_manager = class_manager
         self.module_manager = module_manager
-        logger.debug("Exit PreProcessor.__init__")
+        # logger.debug("Exit PreProcessor.__init__")
 
     def _get_fun_defaults(self, node):
-        logger.debug("In PreProcessor._get_fun_defaults")
+        # logger.debug("In PreProcessor._get_fun_defaults")
         defaults = {}
         start = len(node.args.args) - len(node.args.defaults)
         for cnt, d in enumerate(node.args.defaults, start=start):
@@ -82,21 +81,28 @@ class PreProcessor(ProcessingBase):
             self.visit(d)
             defaults[node.args.kwonlyargs[cnt].arg] = self.decode_node(d)
 
-        logger.debug("Exit PreProcessor._get_fun_defaults")
+        # logger.debug("Exit PreProcessor._get_fun_defaults")
         return defaults
 
     def analyze_submodule(self, modname: str) -> None:
         logger.debug("In PreProcessor.analyze_submodule %s" % (modname))
-        super().analyze_submodule(PreProcessor, modname,
-            self.import_manager, self.scope_manager, self.def_manager, self.class_manager,
-            self.module_manager, modules_analyzed=self.get_modules_analyzed())
+        super().analyze_submodule(
+            PreProcessor,
+            modname,
+            self.import_manager,
+            self.scope_manager,
+            self.def_manager,
+            self.class_manager,
+            self.module_manager,
+            modules_analyzed=self.get_modules_analyzed(),
+        )
         logger.debug("En PreProcessor.analyze_submodule")
 
     def visit_Module(self, node):
         logger.debug("In PreProcessor.visit_Module")
 
         def iterate_mod_items(items, const):
-            logger.debug("In PreProcessor.visit_Module.iterate_mod_items")
+            # logger.debug("In PreProcessor.visit_Module.iterate_mod_items")
             for item in items:
                 defi = self.def_manager.get(item)
                 if not defi:
@@ -107,7 +113,7 @@ class PreProcessor(ProcessingBase):
                 parentns = ".".join(splitted[:-1])
                 self.scope_manager.get_scope(parentns).add_def(name, defi)
 
-            logger.debug("Exit PreProcessor.visit_Module.iterate_mod_items")
+            # logger.debug("Exit PreProcessor.visit_Module.iterate_mod_items")
 
         self.import_manager.set_current_mod(self.modname, self.filename)
 
@@ -122,13 +128,16 @@ class PreProcessor(ProcessingBase):
         root_sc = self.scope_manager.get_scope(self.modname)
         if not root_sc:
             # initialize module scopes
-            items = self.scope_manager.handle_module(self.modname,
-                self.filename, self.contents)
+            items = self.scope_manager.handle_module(
+                self.modname, self.filename, self.contents
+            )
 
             root_sc = self.scope_manager.get_scope(self.modname)
             root_defi = self.def_manager.get(self.modname)
             if not root_defi:
-                root_defi = self.def_manager.create(self.modname, utils.constants.MOD_DEF)
+                root_defi = self.def_manager.create(
+                    self.modname, utils.constants.MOD_DEF
+                )
             root_sc.add_def(self.modname.split(".")[-1], root_defi)
 
             # create function and class defs and add them to their scope
@@ -143,7 +152,7 @@ class PreProcessor(ProcessingBase):
             defi = self.def_manager.create(self.modname, utils.constants.MOD_DEF)
 
         super().visit_Module(node)
-        logger.debug("Exit PreProcessor.visit_Module")
+        # logger.debug("Exit PreProcessor.visit_Module")
 
     def visit_Import(self, node: ast.Import, prefix="", level=0):
         """
@@ -155,32 +164,32 @@ class PreProcessor(ProcessingBase):
         level is set to a number indicating the number
         of parent directories (e.g. in this case level=1)
         """
-        logger.debug("In PreProcessor.visit_Import")
+        # logger.debug("In PreProcessor.visit_Import")
         # logger.debug("%s"%(ast.dump(node, indent=4)))
-        logger.debug("--------------------")
+        # logger.debug("--------------------")
 
         def handle_src_name(name):
-            logger.debug("In PreProcessor.visit_Import.handle_src_name")
+            # logger.debug("In PreProcessor.visit_Import.handle_src_name")
             # Get the module name and prepend prefix if necessary
             src_name = name
             if prefix:
                 src_name = prefix + "." + src_name
-            logger.debug("Exit PreProcessor.visit_Import.handle_src_name")
+            # logger.debug("Exit PreProcessor.visit_Import.handle_src_name")
             return src_name
 
         def handle_scopes(imp_name, tgt_name, modname):
             logger.debug("In PreProcessor.visit_Import.handle_scopes")
 
             def create_def(scope, name, imported_def):
-                logger.debug("In PreProcessor.visit_Import.handle_scopes.create_def")
-                if not name in scope.get_defs():
+                # logger.debug("In PreProcessor.visit_Import.handle_scopes.create_def")
+                if name not in scope.get_defs():
                     def_ns = utils.join_ns(scope.fullns, name)
                     defi = self.def_manager.get(def_ns)
                     if not defi:
                         defi = self.def_manager.assign(def_ns, imported_def)
                     defi.name_pointer.add(imported_def.fullns)
                     current_scope.add_def(name, defi)
-                logger.debug("Exit PreProcessor.visit_Import.handle_scopes.create_def")
+                # logger.debug("Exit PreProcessor.visit_Import.handle_scopes.create_def")
 
             current_scope = self.scope_manager.get_scope(self.current_ns)
             imported_scope = self.scope_manager.get_scope(modname)
@@ -199,10 +208,10 @@ class PreProcessor(ProcessingBase):
                     if defi:
                         create_def(current_scope, tgt_name, defi)
                         current_scope.get_def(tgt_name).name_pointer.add(defi.fullns)
-            logger.debug("Exit PreProcessor.visit_Import.handle_scopes")
+            # logger.debug("Exit PreProcessor.visit_Import.handle_scopes")
 
         def add_external_def(name, target):
-            logger.debug("In PreProcessor.visit_Import.add_external_def")
+            # logger.debug("In PreProcessor.visit_Import.add_external_def")
             # add an external def for the name
             defi = self.def_manager.get(name)
             if not defi:
@@ -216,39 +225,39 @@ class PreProcessor(ProcessingBase):
                     tgt_defi = self.def_manager.create(tgt_ns, utils.constants.EXT_DEF)
                 tgt_defi.name_pointer.add(defi.fullns)
                 scope.add_def(target, tgt_defi)
-            logger.debug("Exit PreProcessor.visit_Import.add_external_def")
+            # logger.debug("Exit PreProcessor.visit_Import.add_external_def")
 
         for import_item in node.names:
-            logger.debug("IMP-1 %s"%(import_item.name))
+            # logger.debug("IMP-1 %s" % (import_item.name))
             src_name = handle_src_name(import_item.name)
-            logger.debug("IMP-2 %s"%(src_name))
+            # logger.debug("IMP-2 %s" % (src_name))
             tgt_name = import_item.asname if import_item.asname else import_item.name
-            logger.debug("IMP-3 %s"%(tgt_name))
+            # logger.debug("IMP-3 %s" % (tgt_name))
             imported_name = self.import_manager.handle_import(src_name, level)
-            logger.debug("IMP-4 %s"%(imported_name))
+            # logger.debug("IMP-4 %s" % (imported_name))
 
             if not imported_name:
                 add_external_def(src_name, tgt_name)
                 continue
 
             fname = self.import_manager.get_filepath(imported_name)
-            logger.debug("IMP-5 %s"%(fname))
+            # logger.debug("IMP-5 %s" % (fname))
             if not fname:
                 add_external_def(src_name, tgt_name)
                 continue
 
-            logger.debug("IMP-6")
+            # logger.debug("IMP-6")
             # only analyze modules under the current directory
             if self.import_manager.get_mod_dir() in fname:
-                logger.debug("IMP-7")
-                if not imported_name in self.modules_analyzed:
-                    logger.debug("IMP-8")
+                # logger.debug("IMP-7")
+                if imported_name not in self.modules_analyzed:
+                    # logger.debug("IMP-8")
                     self.analyze_submodule(imported_name)
                 handle_scopes(import_item.name, tgt_name, imported_name)
             else:
-                logger.debug("IMP-9")
+                # logger.debug("IMP-9")
                 add_external_def(src_name, tgt_name)
-            logger.debug("IMP-10")
+            # logger.debug("IMP-10")
 
         # handle all modules that were not analyzed
         for modname in self.import_manager.get_imports(self.modname):
@@ -256,29 +265,35 @@ class PreProcessor(ProcessingBase):
             if not fname:
                 continue
             # only analyze modules under the current directory
-            if self.import_manager.get_mod_dir() in fname and \
-                not modname in self.modules_analyzed:
-                    self.analyze_submodule(modname)
-        logger.debug("Exit PreProcessor.visit_Import")
+            if (
+                self.import_manager.get_mod_dir() in fname
+                and modname not in self.modules_analyzed
+            ):
+                self.analyze_submodule(modname)
+        # logger.debug("Exit PreProcessor.visit_Import")
 
     def visit_ImportFrom(self, node):
-        logger.debug("In PreProcessor.visit_ImportFrom")
+        # logger.debug("In PreProcessor.visit_ImportFrom")
         self.visit_Import(node, prefix=node.module, level=node.level)
-        logger.debug("Exit PreProcessor.visit_ImportFrom")
+        # logger.debug("Exit PreProcessor.visit_ImportFrom")
 
     def _get_last_line(self, node):
-        logger.debug("In PreProcessor._get_last_line")
-        lines = sorted(list(ast.walk(node)), key=lambda x: x.lineno if hasattr(x, "lineno") else 0, reverse=True)
+        # logger.debug("In PreProcessor._get_last_line")
+        lines = sorted(
+            ast.walk(node),
+            key=lambda x: x.lineno if hasattr(x, "lineno") else 0,
+            reverse=True,
+        )
         if not lines:
-            logger.debug("Exit PreProcessor._get_last_line")
+            # logger.debug("Exit PreProcessor._get_last_line")
             return node.lineno
 
         last = getattr(lines[0], "lineno", node.lineno)
         if last < node.lineno:
-            logger.debug("Exit PreProcessor._get_last_line")
+            # logger.debug("Exit PreProcessor._get_last_line")
             return node.lineno
 
-        logger.debug("Exit PreProcessor._get_last_line")
+        # logger.debug("Exit PreProcessor._get_last_line")
         return last
 
     def _handle_function_def(self, node, fn_name: str):
@@ -301,7 +316,10 @@ class PreProcessor(ProcessingBase):
         is_static_method = False
         if hasattr(node, "decorator_list"):
             for decorator in node.decorator_list:
-                if isinstance(decorator, ast.Name) and decorator.id == utils.constants.STATIC_METHOD:
+                if (
+                    isinstance(decorator, ast.Name)
+                    and decorator.id == utils.constants.STATIC_METHOD
+                ):
                     is_static_method = True
 
         if current_def.is_class_def() and not is_static_method and node.args.args:
@@ -326,9 +344,9 @@ class PreProcessor(ProcessingBase):
             defs_to_create.append(arg_ns)
 
         # TODO: Add support for kwargs and varargs
-        #if node.args.kwarg:
+        # if node.args.kwarg:
         #    pass
-        #if node.args.vararg:
+        # if node.args.vararg:
         #    pass
 
         for arg_ns in defs_to_create:
@@ -350,49 +368,51 @@ class PreProcessor(ProcessingBase):
                             arg_def.merge(default)
                     else:
                         arg_def.get_lit_pointer().add(default)
-        logger.debug("Exit PreProcessor._handle_function_def")
+        # logger.debug("Exit PreProcessor._handle_function_def")
         return fn_def
 
     def visit_AsyncFunctionDef(self, node):
-        logger.debug("In PreProcessor.visit_AsyncFunctionDef")
+        # logger.debug("In PreProcessor.visit_AsyncFunctionDef")
         self.visit_FunctionDef(node)
-        logger.debug("Exit PreProcessor.visit_AsyncFunctionDef")
+        # logger.debug("Exit PreProcessor.visit_AsyncFunctionDef")
 
     def visit_FunctionDef(self, node):
-        logger.debug("In PreProcessor.visit_FunctionDef")
-        fn_def = self._handle_function_def(node, node.name)
+        # logger.debug("In PreProcessor.visit_FunctionDef")
+        self._handle_function_def(node, node.name)
 
         super().visit_FunctionDef(node)
-        logger.debug("Exit PreProcessor.visit_FunctionDef")
+        # logger.debug("Exit PreProcessor.visit_FunctionDef")
 
     def visit_For(self, node):
-        logger.debug("In PreProcessor.visit_For")
+        # logger.debug("In PreProcessor.visit_For")
         # just create the definition for target
         if isinstance(node.target, ast.Name):
             target_ns = utils.join_ns(self.current_ns, node.target.id)
             if not self.def_manager.get(target_ns):
                 defi = self.def_manager.create(target_ns, utils.constants.NAME_DEF)
-                self.scope_manager.get_scope(self.current_ns).add_def(node.target.id, defi)
+                self.scope_manager.get_scope(self.current_ns).add_def(
+                    node.target.id, defi
+                )
         super().visit_For(node)
-        logger.debug("Exit PreProcessor.visit_For")
+        # logger.debug("Exit PreProcessor.visit_For")
 
     def visit_Assign(self, node):
-        logger.debug("In PreProcessor.visit_Assign")
+        # logger.debug("In PreProcessor.visit_Assign")
         self._visit_assign(node.value, node.targets)
-        logger.debug("Exit PreProcessor.visit_Assign")
+        # logger.debug("Exit PreProcessor.visit_Assign")
 
     def visit_Return(self, node):
-        logger.debug("In PreProcessor.visit_Return")
+        # logger.debug("In PreProcessor.visit_Return")
         self._visit_return(node)
-        logger.debug("Exit PreProcessor.visit_Return")
+        # logger.debug("Exit PreProcessor.visit_Return")
 
     def visit_Yield(self, node):
-        logger.debug("In PreProcessor.visit_Yield")
+        # logger.debug("In PreProcessor.visit_Yield")
         self._visit_return(node)
-        logger.debug("Exit PreProcessor.visit_Yield")
+        # logger.debug("Exit PreProcessor.visit_Yield")
 
     def visit_Call(self, node):
-        logger.debug("In PreProcessor.visit_Call")
+        # logger.debug("In PreProcessor.visit_Call")
         self.visit(node.func)
         # if it is not a name there's nothing we can do here
         # ModuleVisitor will be able to resolve those calls
@@ -400,23 +420,25 @@ class PreProcessor(ProcessingBase):
         if not isinstance(node.func, ast.Name):
             return
 
-        fullns = utils.join_ns(self.current_ns, node.func.id)
+        utils.join_ns(self.current_ns, node.func.id)
 
         defi = self.scope_manager.get_def(self.current_ns, node.func.id)
         if not defi:
             return
 
         if defi.is_class_def():
-            defi = self.def_manager.get(utils.join_ns(defi.fullns, utils.constants.CLS_INIT))
+            defi = self.def_manager.get(
+                utils.join_ns(defi.fullns, utils.constants.CLS_INIT)
+            )
             if not defi:
                 return
 
         self.iterate_call_args(defi, node)
 
-        logger.debug("Exit PreProcessor.visit_Call")
+        # logger.debug("Exit PreProcessor.visit_Call")
 
-    def visit_Lambda(self, node):
-        logger.debug("In PreProcessor.visit_Lambda")
+    def visit_Lambda(self, node: ast.Lambda):
+        # logger.debug("In PreProcessor.visit_Lambda")
         # The name of a lambda is defined by the counter of the current scope
         current_scope = self.scope_manager.get_scope(self.current_ns)
         lambda_counter = current_scope.inc_lambda_counter()
@@ -431,11 +453,11 @@ class PreProcessor(ProcessingBase):
 
         super().visit_Lambda(node, lambda_name)
 
-        logger.debug("Exit PreProcessor.visit_Lambda")
+        # logger.debug("Exit PreProcessor.visit_Lambda")
 
     def visit_ClassDef(self, node: ast.ClassDef):
         # create a definition for the class (node.name)
-        logger.debug("In PreProcessor.visit_ClassDef")
+        # logger.debug("In PreProcessor.visit_ClassDef")
         cls_def = self.def_manager.handle_class_def(self.current_ns, node.name)
 
         mod = self.module_manager.get(self.modname)
@@ -453,7 +475,7 @@ class PreProcessor(ProcessingBase):
 
         super().visit_ClassDef(node)
 
-        logger.debug("Exit PreProcessor.visit_Lambda")
+        # logger.debug("Exit PreProcessor.visit_Lambda")
 
     def analyze(self) -> None:
         logger.debug("In PreProcessor.analyze")
@@ -467,6 +489,5 @@ class PreProcessor(ProcessingBase):
             # In the event for some reason there is a Syntax error we avoid
             # failing completely.
             logger.info("SyntaxError happened for %s" % (self.filename))
-            pass
 
-        logger.debug("Exit PreProcessor.analyze")
+        # logger.debug("Exit PreProcessor.analyze")

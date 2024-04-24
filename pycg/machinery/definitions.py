@@ -27,8 +27,6 @@ logger = logging.getLogger(__name__)
 
 from typing import Dict, Set, Optional
 
-from typing import Dict, Set, Optional
-
 
 class DefinitionManager:
     def __init__(self) -> None:
@@ -108,10 +106,10 @@ class DefinitionManager:
                     continue
                 items = dfs(self.defs[name])
                 if not items:
-                    items = set([name])
+                    items = {name}
                 new_set.update(items)
 
-            closured[defi.fullns] = new_set
+            # closured[defi.fullns] = new_set
             return new_set
 
         for current_def in self.defs.values():
@@ -141,8 +139,8 @@ class DefinitionManager:
                     arg.remove(pointsto_arg)
 
                 for item in arg:
-                    if not item in pointsto_arg_def.get():
-                        if self.defs.get(item, None) != None:
+                    if item not in pointsto_arg_def.get():
+                        if self.defs.get(item, None) is not None:
                             changed_something = True
                     # HACK: this check shouldn't be needed
                     # if we remove this the following breaks:
@@ -154,34 +152,34 @@ class DefinitionManager:
                     pointsto_arg_def.add(item)
             return changed_something
 
-        logger.info("Def-Iterating %d defs"%(len(self.defs)))
+        logger.info("Def-Iterating %d defs" % len(self.defs))
         if len(self.defs) > 9000:
-            logger.info("The definition list is too large. This is likely to take forever. Avoid this step")
+            logger.info(
+                "The definition list is too large. This is likely to take forever. Avoid this step"
+            )
             return
 
         for i in range(len(self.defs)):
-            #logger.info("Def-idx-%d"%(i))
+            logger.info("Def-idx-%d" % (i))
             changed_something = False
             for ns, current_def in self.defs.items():
-                #logger.info("Def-idx2-%d"%(idx2))
                 # the name pointer of the definition we're currently iterating
-                current_name_pointer = current_def.name_pointer
-                #print("Name point: %s"%(str(current_name_pointer)))
+                current_name_pointer: NamePointer = current_def.name_pointer
+                # print("Name point: %s"%(str(current_name_pointer)))
                 # iterate the names the current definition points to items
                 # for name in current_name_pointer.get():
                 for name in current_name_pointer.values.copy():
-
+                    if name == ns:
+                        continue
                     # get the name pointer of the points to name
                     if not self.defs.get(name, None):
-                        continue
-                    if name == ns:
                         continue
 
                     pointsto_name_pointer: NamePointer = self.defs[name].name_pointer
                     # iterate the arguments of the definition we're currently iterating
                     for arg_name, arg in current_name_pointer.args.items():
                         pos = current_name_pointer.get_pos_of_name(arg_name)
-                        if not pos is None:
+                        if pos is not None:
                             pointsto_args = pointsto_name_pointer.get_pos_arg(pos)
                             if not pointsto_args:
                                 pointsto_name_pointer.add_pos_arg(pos, None, arg)
@@ -191,13 +189,21 @@ class DefinitionManager:
                             if not pointsto_args:
                                 pointsto_name_pointer.add_arg(arg_name, arg)
                                 continue
-                        changed_something = changed_something or update_pointsto_args(pointsto_args, arg, current_def.fullns)
+                        changed_something = changed_something or update_pointsto_args(
+                            pointsto_args, arg, current_def.fullns
+                        )
             if not changed_something:
                 break
 
 
 class Definition:
-    __slots__ = ["fullns", "name_pointer", "literal_pointer", "def_type", "decorator_names"]
+    __slots__ = [
+        "fullns",
+        "name_pointer",
+        "literal_pointer",
+        "def_type",
+        "decorator_names",
+    ]
     types = [
         utils.constants.FUN_DEF,
         utils.constants.MOD_DEF,

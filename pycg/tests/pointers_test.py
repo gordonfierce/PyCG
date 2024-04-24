@@ -34,19 +34,19 @@ class PointerTest(TestBase):
 
         pointer.merge(pointer2)
 
-        self.assertEqual(pointer.get(), set(["smth", "smth2", "smth3"]))
-        self.assertEqual(pointer2.get(), set(["smth2", "smth3"]))
+        self.assertEqual(pointer.get(), {"smth", "smth2", "smth3"})
+        self.assertEqual(pointer2.get(), {"smth2", "smth3"})
 
         pointer3 = Pointer()
         pointer.merge(pointer3)
-        self.assertEqual(pointer.get(), set(["smth", "smth2", "smth3"]))
+        self.assertEqual(pointer.get(), {"smth", "smth2", "smth3"})
         self.assertEqual(pointer3.get(), set())
 
     def test_literal_pointer(self):
         pointer = LiteralPointer()
         # assert that for string values, we just include
         # that the literal points to a str or int
-        clone = set(["something"])
+        clone = {"something"}
         pointer.add("something")
         self.assertEqual(pointer.get(), clone)
 
@@ -65,12 +65,12 @@ class PointerTest(TestBase):
 
         self.assertEqual(pointer.get_args(), clone)
 
-        name_clone["name0"] = clone[0] = set(["something", "set", "addition"])
-        name_clone["name1"] = clone[1] = set(["somethingelse"])
+        name_clone["name0"] = clone[0] = {"something", "set", "addition"}
+        name_clone["name1"] = clone[1] = {"somethingelse"}
 
         pointer.add_pos_arg(0, "name0", "something")
         pointer.add_pos_arg(1, "name1", "somethingelse")
-        pointer.add_pos_arg(0, "name0", set(["set", "addition"]))
+        pointer.add_pos_arg(0, "name0", {"set", "addition"})
 
         with self.assertRaises(PointerError):
             pointer.add_pos_arg("NaN", "NaN0", "fail")
@@ -78,7 +78,7 @@ class PointerTest(TestBase):
         self.assertEqual(pointer.get_pos_args(), clone)
         self.assertEqual(pointer.get_args(), name_clone)
 
-        name_clone["name2"] = clone[2] = set([LiteralPointer.INT_LIT])
+        name_clone["name2"] = clone[2] = {LiteralPointer.INT_LIT}
         pointer.add_pos_lit_arg(2, "name2", 2)
         pointer.add_pos_lit_arg(2, "name2", 3)
         self.assertEqual(pointer.get_pos_args(), clone)
@@ -97,16 +97,16 @@ class PointerTest(TestBase):
     def test_name_pointer_merge(self):
         pointer1 = NamePointer()
         pointer1.add("smth1")
-        pointer1.add_arg(0, set(["smth2", "smth3"]))
-        pointer1.add_arg(1, set(["smth4"]))
+        pointer1.add_arg(0, {"smth2", "smth3"})
+        pointer1.add_arg(1, {"smth4"})
 
         pointer2 = NamePointer()
         pointer2.add("smth6")
-        pointer2.add_arg(0, set(["smth7", "smth8"]))
-        pointer2.add_arg(1, set(["smth9"]))
+        pointer2.add_arg(0, {"smth7", "smth8"})
+        pointer2.add_arg(1, {"smth9"})
 
         pointer1.merge(pointer2)
 
-        self.assertEqual(pointer1.get(), set(["smth1", "smth6"]))
-        self.assertEqual(pointer1.get_arg(0), set(["smth2", "smth3", "smth7", "smth8"]))
-        self.assertEqual(pointer1.get_arg(1), set(["smth4", "smth9"]))
+        self.assertEqual(pointer1.get(), {"smth1", "smth6"})
+        self.assertEqual(pointer1.get_arg(0), {"smth2", "smth3", "smth7", "smth8"})
+        self.assertEqual(pointer1.get_arg(1), {"smth4", "smth9"})

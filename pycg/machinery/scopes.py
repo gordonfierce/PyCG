@@ -38,7 +38,7 @@ class ScopeManager:
         classes = []
 
         def process(namespace: str, parent, table: symtable.SymbolTable):
-            name = table.get_name() if table.get_name() != 'top' else ''
+            name = table.get_name() if table.get_name() != "top" else ""
             if name:
                 fullns = utils.join_ns(namespace, name)
             else:
@@ -55,7 +55,9 @@ class ScopeManager:
             for t in table.get_children():
                 process(fullns, sc, t)
 
-        process(modulename, None, symtable.symtable(contents, filename, compile_type="exec"))
+        process(
+            modulename, None, symtable.symtable(contents, filename, compile_type="exec")
+        )
         return {"functions": functions, "classes": classes}
 
     def handle_assign(self, ns: str, target: str, defi: Definition):

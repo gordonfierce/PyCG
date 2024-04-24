@@ -28,18 +28,18 @@ class Fuzz(BaseFormatter):
     def generate(self):
         output = self.cg_generator.cg.get_extended()
 
-        #output = self.cg_generator.output()
+        # output = self.cg_generator.output()
         output_cg = {}
         for node in output:
-            output_cg[node] = output[node]#list(output[node])
+            output_cg[node] = output[node]  # list(output[node])
 
         res = {}
 
-        res['cg'] = output_cg
-        res['entrypoints'] = self.cg_generator.cg.entrypoints
-        res['ep'] = {
-            "name" : self.cg_generator.cg.ep,
-            "mod"  : self.cg_generator.cg.ep_mod 
+        res["cg"] = output_cg
+        res["entrypoints"] = self.cg_generator.cg.entrypoints
+        res["ep"] = {
+            "name": self.cg_generator.cg.ep,
+            "mod": self.cg_generator.cg.ep_mod,
         }
-        res['function_lines'] = self.cg_generator.cg.function_line_numbers
+        res["function_lines"] = self.cg_generator.cg.function_line_numbers
         return res

@@ -25,8 +25,6 @@ logger = logging.getLogger(__name__)
 
 
 class CallGraph:
-    cg: Dict[str, set]
-
     def __init__(self) -> None:
         self.cg: Dict[str, Set[str]] = {}
         self.cg_extended = {}
@@ -41,32 +39,27 @@ class CallGraph:
             raise CallGraphError("Only string node names allowed")
         if not name:
             raise CallGraphError("Empty node name")
-        
-        #logger.info(f"AN: {name} -- mod: {modname}")
-        if not name in self.cg:
-            #logger.info(f"AN1: {name} -- mod: {modname}")
+
+        # logger.info(f"AN: {name} -- mod: {modname}")
+        if name not in self.cg:
+            # logger.info(f"AN1: {name} -- mod: {modname}")
             self.cg[name] = set()
-            self.cg_extended[name] = {
-                'dsts' : [],
-                'meta' : {
-                    'modname' : modname
-                }
-            }
+            self.cg_extended[name] = {"dsts": [], "meta": {"modname": modname}}
             self.modnames[name] = modname
-        #else:
-            #logger.info(f"AN1.1: {name} --- {self.cg[name]}")
+        # else:
+        # logger.info(f"AN1.1: {name} --- {self.cg[name]}")
 
         if name in self.cg and not self.modnames[name]:
-            #logger.info(f"AN3: {name} -- mod: {modname}")
+            # logger.info(f"AN3: {name} -- mod: {modname}")
             self.modnames[name] = modname
         else:
-            #logger.info(f"AN4: {self.modnames[name]}")
-            #logger.info(f"AN5: {self.cg_extended[name]}")
-            if not self.cg_extended[name]['meta']['modname']:
-                #logger.info("AN6")
-                self.cg_extended[name]['meta']['modname'] = modname
-            #else:
-                #logger.info("AN7")
+            # logger.info(f"AN4: {self.modnames[name]}")
+            # logger.info(f"AN5: {self.cg_extended[name]}")
+            if not self.cg_extended[name]["meta"]["modname"]:
+                # logger.info("AN6")
+                self.cg_extended[name]["meta"]["modname"] = modname
+            # else:
+            # logger.info("AN7")
 
     def add_edge(
         self, src: str, dest: str, lineno: int = -1, mod: str = "", ext_mod: str = ""
@@ -75,16 +68,11 @@ class CallGraph:
         self.add_node(dest)
         self.cg[src].add(dest)
 
-        #logger.debug("Adding edge")
-        self.cg_extended[src]['dsts'].append(
-            {
-                "dst": dest,
-                "lineno": lineno,
-                "mod" : mod,
-                "ext_mod" : ext_mod
-            }
+        # logger.debug("Adding edge")
+        self.cg_extended[src]["dsts"].append(
+            {"dst": dest, "lineno": lineno, "mod": mod, "ext_mod": ext_mod}
         )
-        #logger.debug(self.cg_extended[src])
+        # logger.debug(self.cg_extended[src])
 
     def get(self) -> Dict[str, Set[str]]:
         return self.cg
@@ -106,9 +94,9 @@ class CallGraph:
         self.ep = ep
         self.ep_mod = modname
         self.entrypoints.append((ep, modname))
-        #if not "entrypoints" in self.cg_extended:
+        # if not "entrypoints" in self.cg_extended:
         #    self.cg_extended['entrypoints'] = []
-        #self.cg_extended['entrypoints'].append((ep, modname))
+        # self.cg_extended['entrypoints'].append((ep, modname))
 
 
 class CallGraphError(Exception):

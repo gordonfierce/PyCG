@@ -40,6 +40,7 @@ from typing import Union, Literal, Set
 logger = logging.getLogger(__name__)
 
 
+
 class CallGraphGenerator:
     def __init__(
         self,
@@ -70,12 +71,12 @@ class CallGraphGenerator:
         for key, defi in self.def_manager.defs.items():
             state["defs"][key] = {
                 "names": defi.get_name_pointer().values.copy(),
-                "lit": defi.get_lit_pointer().values.copy()
+                "lit": defi.get_lit_pointer().values.copy(),
             }
 
         state["scopes"] = {}
         for key, scope in self.scope_manager.get_scopes().items():
-            state["scopes"][key] = set(x.fullns for x in scope.get_defs().values())
+            state["scopes"][key] = {x.fullns for x in scope.get_defs().values()}
 
         state["classes"] = {}
         for key, ch in self.class_manager.get_classes().items():
@@ -94,7 +95,7 @@ class CallGraphGenerator:
 
         # check defs
         for key, defi in curr_state["defs"].items():
-            if not key in self.state["defs"]:
+            if key not in self.state["defs"]:
                 return False
             if defi["names"] != self.state["defs"][key]["names"]:
                 return False
@@ -103,14 +104,14 @@ class CallGraphGenerator:
 
         # check scopes
         for key, scope in curr_state["scopes"].items():
-            if not key in self.state["scopes"]:
+            if key not in self.state["scopes"]:
                 return False
             if scope != self.state["scopes"][key]:
                 return False
 
         # check classes
         for key, ch in curr_state["classes"].items():
-            if not key in self.state["classes"]:
+            if key not in self.state["classes"]:
                 return False
             if ch != self.state["classes"][key]:
                 return False
@@ -129,8 +130,7 @@ class CallGraphGenerator:
         # since pycg can't differentiate between functions
         # coming from __init__ files.
 
-        input_mod = utils.to_mod_name(
-            os.path.relpath(entry, pkg))
+        input_mod = utils.to_mod_name(os.path.relpath(entry, pkg))
         if input_mod.endswith("__init__"):
             input_mod = ".".join(input_mod.split(".")[:-1])
 
@@ -153,19 +153,19 @@ class CallGraphGenerator:
             input_pkg = self.package
             input_mod = self._get_mod_name(entry_point, input_pkg)
             input_file = os.path.abspath(entry_point)
-            logger.debug("E1 -- %s -- %s -- %s"%(input_pkg, input_mod, input_file))
+            # logger.debug(f"E1 -- {input_pkg} -- {input_mod} -- {input_file}")
             if not input_mod:
                 continue
 
-            logger.debug("E2 -- %s -- %s -- %s"%(input_pkg, input_mod, input_file))
+            # logger.debug(f"E2 -- {input_pkg} -- {input_mod} -- {input_file}")
             if not input_pkg:
                 input_pkg = os.path.dirname(input_file)
 
-            logger.debug("E3 -- %s -- %s -- %s"%(input_pkg, input_mod, input_file))
-            if not input_mod in modules_analyzed:
-                logger.info("Running analysis on: %s"%(input_file))
-                logger.info("Input mod: %s"%(input_mod))
-                logger.info("Input pkg: %s"%(input_pkg))
+            # logger.debug(f"E3 -- {input_pkg} -- {input_mod} -- {input_file}")
+            if input_mod not in modules_analyzed:
+                logger.info("Running analysis on: %s" % (input_file))
+                logger.info("Input mod: %s" % (input_mod))
+                logger.info("Input pkg: %s" % (input_pkg))
                 if install_hooks:
                     logger.info("Installing hooks")
                     self.import_manager.set_pkg(input_pkg)
@@ -173,57 +173,89 @@ class CallGraphGenerator:
                 else:
                     logger.info("Not installing hooks")
                 logger.info("Creating processing class")
-                processor = cls(input_file, input_mod,
-                                modules_analyzed=modules_analyzed, *args, **kwargs)
-                logger.info("Done analysis: %s"%(input_file))
+                processor = cls(
+                    input_file,
+                    input_mod,
+                    modules_analyzed=modules_analyzed,
+                    *args,
+                    **kwargs,
+                )
+                logger.info("Done analysis: %s" % (input_file))
                 processor.analyze()
                 modules_analyzed.update(processor.get_modules_analyzed())
 
                 if install_hooks:
                     self.remove_import_hooks()
-            logger.debug("E5 -- %s -- %s -- %s #"%(input_pkg, input_mod, input_file))
+            logger.debug(f"E5 -- {input_pkg} -- {input_mod} -- {input_file} #")
 
     def analyze(self) -> None:
         #try:
         # TODO: I REVERSED THE FALSE TO TRUE BECAUSE INSTALLING HOOKS CAUSED A LOT
         # OF ISSUES. THIS SHOULD BE FURTHER INSPECTED.
         logging.basicConfig(
-            format='%(levelname)-8s %(asctime)s [%(filename)s:%(lineno)d] %(message)s',
-            datefmt='%Y-%m-%d:%H:%M:%S',
-            level=logging.INFO
+            format="%(levelname)-8s %(asctime)s [%(filename)s:%(lineno)d] %(message)s",
+            datefmt="%Y-%m-%d:%H:%M:%S",
+            level=logging.INFO,
         )
         logger.info("Starting analysis")
 
-        self.do_pass(PreProcessor, True,
-                self.import_manager, self.scope_manager, self.def_manager,
-                self.class_manager, self.module_manager)
-        #except AttributeError:
+        self.do_pass(
+            PreProcessor,
+            True,
+            self.import_manager,
+            self.scope_manager,
+            self.def_manager,
+            self.class_manager,
+            self.module_manager,
+        )
+        # except AttributeError:
         #    self.do_pass(PreProcessor, False,
         #            self.import_manager, self.scope_manager, self.def_manager,
         #            self.class_manager, self.module_manager)
         self.def_manager.complete_definitions()
 
         iter_cnt = 0
-        while (self.max_iter < 0 or iter_cnt < self.max_iter) and (not self.has_converged()):
-            logger.debug("Iteration %d"%(iter_cnt))
+        while (self.max_iter < 0 or iter_cnt < self.max_iter) and (
+            not self.has_converged()
+        ):
+            logger.debug("Iteration %d" % (iter_cnt))
             self.state = self.extract_state()
             self.reset_counters()
-            self.do_pass(PostProcessor, False,
-                    self.import_manager, self.scope_manager, self.def_manager,
-                    self.class_manager, self.module_manager)
+            self.do_pass(
+                PostProcessor,
+                False,
+                self.import_manager,
+                self.scope_manager,
+                self.def_manager,
+                self.class_manager,
+                self.module_manager,
+            )
 
             self.def_manager.complete_definitions()
             iter_cnt += 1
 
         self.reset_counters()
         if self.operation == utils.constants.CALL_GRAPH_OP:
-            self.do_pass(CallGraphProcessor, False,
-                    self.import_manager, self.scope_manager, self.def_manager,
-                    self.class_manager, self.module_manager, call_graph=self.cg)
+            self.do_pass(
+                CallGraphProcessor,
+                False,
+                self.import_manager,
+                self.scope_manager,
+                self.def_manager,
+                self.class_manager,
+                self.module_manager,
+                call_graph=self.cg,
+            )
         elif self.operation == utils.constants.KEY_ERR_OP:
-            self.do_pass(KeyErrProcessor, False,
-                    self.import_manager, self.scope_manager, self.def_manager,
-                    self.class_manager, self.key_errs)
+            self.do_pass(
+                KeyErrProcessor,
+                False,
+                self.import_manager,
+                self.scope_manager,
+                self.def_manager,
+                self.class_manager,
+                self.key_errs,
+            )
         else:
             raise Exception("Invalid operation: " + self.operation)
 
@@ -240,9 +272,12 @@ class CallGraphGenerator:
         res = {}
         for mod, node in mods.items():
             res[mod] = {
-                "filename": os.path.relpath(node.get_filename(), self.package)\
-                    if node.get_filename() else None,
-                "methods": node.get_methods()
+                "filename": (
+                    os.path.relpath(node.get_filename(), self.package)
+                    if node.get_filename()
+                    else None
+                ),
+                "methods": node.get_methods(),
             }
         return res
 
@@ -262,10 +297,7 @@ class CallGraphGenerator:
     def output_classes(self):
         classes = {}
         for cls, node in self.class_manager.get_classes().items():
-            classes[cls] = {
-                "mro": node.get_mro(),
-                "module": node.get_module()
-            }
+            classes[cls] = {"mro": node.get_mro(), "module": node.get_module()}
         return classes
 
     def get_as_graph(self):

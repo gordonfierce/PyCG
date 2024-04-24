@@ -62,22 +62,24 @@ class DefinitionManagerTest(TestBase):
         self.assertEqual(defi2.get_ns(), "defi2")
         # values should be merged
         self.assertEqual(defi2.get_type(), utils.constants.NAME_DEF)
-        self.assertEqual(defi2.get_name_pointer().get(), set(["item1", "item2"]))
-        self.assertEqual(defi2.get_name_pointer().get_arg(0), set(["arg"]))
+        self.assertEqual(defi2.get_name_pointer().get(), {"item1", "item2"})
+        self.assertEqual(defi2.get_name_pointer().get_arg(0), {"arg"})
 
         # for function defs a return def should be created too
         fndefi = dm.create("fndefi", utils.constants.FUN_DEF)
-        fndefi2 = dm.assign("fndefi2", fndefi)
+        dm.assign("fndefi2", fndefi)
         return_def = dm.get("{}.{}".format("fndefi2", utils.constants.RETURN_NAME))
         self.assertIsNotNone(return_def)
-        self.assertEqual(return_def.get_name_pointer().values, set(["{}.{}".format("fndefi", utils.constants.RETURN_NAME)]))
-
+        self.assertEqual(
+            return_def.get_name_pointer().values,
+            {"{}.{}".format("fndefi", utils.constants.RETURN_NAME)},
+        )
 
     def test_handle_function_def(self):
         # handle parent definition
         parent_ns = "root"
         fn_name = "function"
-        fn_ns = "{}.{}".format(parent_ns, fn_name)
+        fn_ns = f"{parent_ns}.{fn_name}"
 
         dm = DefinitionManager()
         dm.create("root", utils.constants.NAME_DEF)

@@ -58,7 +58,7 @@ class CallGraphTest(TestBase):
 
     def test_add_edge(self):
         clone = {}
-        clone["node1"] = set(["node2"])
+        clone["node1"] = {"node2"}
         clone["node2"] = set()
 
         # should create a node for node1 and node2

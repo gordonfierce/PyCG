@@ -23,19 +23,23 @@ from typing import Optional
 
 
 def get_lambda_name(counter) -> str:
-    return "<lambda{}>".format(counter)
+    return f"<lambda{counter}>"
+
 
 
 def get_dict_name(counter) -> str:
-    return "<dict{}>".format(counter)
+    return f"<dict{counter}>"
+
 
 
 def get_list_name(counter) -> str:
-    return "<list{}>".format(counter)
+    return f"<list{counter}>"
+
 
 
 def get_int_name(counter) -> str:
-    return "<int{}>".format(counter)
+    return f"<int{counter}>"
+
 
 
 def join_ns(*args: str) -> str:

@@ -22,6 +22,8 @@ import ast
 import copy
 import importlib
 import importlib.abc
+import copy
+import importlib
 import logging
 import os
 import sys
@@ -41,16 +43,16 @@ def get_custom_loader(ig_obj):
         def __init__(self, fullname, path):
             self.fullname = fullname
             self.path = path
-            logger.debug("Creating edge: %s"%(fullname))
-            #try:
+            # logger.debug("Creating edge: %s" % (fullname))
+            # try:
             if ig_obj.current_module == "":
-                logger.warning("Failed creating mod : %s"%(fullname))
+                logger.warning("Failed creating mod : %s" % (fullname))
                 return
             ig_obj.create_edge(self.fullname)
             if not ig_obj.get_node(self.fullname):
                 ig_obj.create_node(self.fullname)
                 ig_obj.set_filepath(self.fullname, self.path)
-            #except:
+            # except:
             #    print("Done")
             #    None
 
@@ -100,7 +102,7 @@ class ImportManager:
         logger.debug("In ImportManager.create_edge")
         if not dest or not isinstance(dest, str):
             raise ImportManagerError("Invalid node name")
-        logger.debug("Trying to get path of %s"%(self._get_module_path()))
+        # logger.debug("Trying to get path of %s" % self._get_module_path())
         node = self.get_node(self._get_module_path())
         if not node:
             raise ImportManagerError("Can't add edge to a non existing node")
@@ -108,7 +110,7 @@ class ImportManager:
         node["imports"].add(dest)
 
     def _clear_caches(self):
-        logger.debug("In ImportManager._clear_caches")
+        # logger.debug("In ImportManager._clear_caches")
         importlib.invalidate_caches()
         sys.path_importer_cache.clear()
 
@@ -116,7 +118,7 @@ class ImportManager:
         for name in self.import_graph:
             if name in sys.modules:
                 del sys.modules[name]
-        logger.debug("Exit ImportManager._clear_caches")
+        # logger.debug("Exit ImportManager._clear_caches")
 
     def _get_module_path(self) -> str:
         logger.debug("In ImportManager._get_module_path")
@@ -156,7 +158,7 @@ class ImportManager:
         return self.input_file.endswith("__init__.py")
 
     def _handle_import_level(self, name, level):
-        logger.debug("In ImportManager._handle_import_level")
+        # logger.debug("In ImportManager._handle_import_level")
         # add a dot for each level
         package = self._get_module_path().split(".")
         if level > len(package):
@@ -175,7 +177,7 @@ class ImportManager:
         return mod_name, ".".join(package)
 
     def _do_import(self, mod_name, package):
-        logger.debug("In ImportManager._do_import")
+        # logger.debug("In ImportManager._do_import")
         if mod_name in sys.modules:
             self.create_edge(mod_name)
             return sys.modules[mod_name]
@@ -186,29 +188,31 @@ class ImportManager:
         # We currently don't support builtin modules because they're frozen.
         # Add an edge and continue.
         # TODO: identify a way to include frozen modules
-        logger.debug("In ImportManager.handle_import")
+        # logger.debug("In ImportManager.handle_import")
         root = name.partition(".")[0]
         if root in sys.builtin_module_names:
-            logger.debug("Handling builtin modules: %s" % root)
+            # logger.debug("Handling builtin modules: %s" % root)
             self.create_edge(root)
             return
-        logger.debug("Exit ImportManager.handle_import")
+        # logger.debug("Exit ImportManager.handle_import")
 
         # Import the module
         try:
-            logger.debug("Try import (name: %s; level: %s)" % (name, level))
+            # logger.debug(f"Try import (name: {name}; level: {level})")
             mod_name, package = self._handle_import_level(name, level)
-            logger.debug("Import success (name: %s; level: %s)" % (name, level))
+            # logger.debug(f"Import success (name: {name}; level: {level})")
         except ImportError as e:
             logger.warn(str(e))
             return
 
         parent = ".".join(mod_name.split(".")[:-1])
         parent_name = ".".join(name.split(".")[:-1])
-        combos = [(mod_name, package),
-                (parent, package),
-                (utils.join_ns(package, name), ""),
-                (utils.join_ns(package, parent_name), "")]
+        combos = [
+            (mod_name, package),
+            (parent, package),
+            (utils.join_ns(package, name), ""),
+            (utils.join_ns(package, parent_name), ""),
+        ]
 
         mod = None
         for mn, pkg in combos:
@@ -224,17 +228,20 @@ class ImportManager:
         if not hasattr(mod, "__file__") or not mod.__file__:
             return
 
-        if self.mod_dir != None and mod.__file__ != None and self.mod_dir not in mod.__file__:
+        if (
+            self.mod_dir is not None
+            and mod.__file__ is not None
+            and self.mod_dir not in mod.__file__
+        ):
             return
         fname = mod.__file__
         if fname.endswith("__init__.py"):
             fname = os.path.split(fname)[0]
 
-        return utils.to_mod_name(
-            os.path.relpath(fname, self.mod_dir))
+        return utils.to_mod_name(os.path.relpath(fname, self.mod_dir))
 
     def get_import_graph(self):
-        logger.debug("In ImportManager.get_import_graph")
+        # logger.debug("In ImportManager.get_import_graph")
         return self.import_graph
 
     def install_hooks(self) -> None:
@@ -244,11 +251,13 @@ class ImportManager:
         self.old_path = copy.deepcopy(sys.path)
 
         loader_details = loader, importlib.machinery.all_suffixes()
-        sys.path_hooks.insert(0, importlib.machinery.FileFinder.path_hook(loader_details))
+        sys.path_hooks.insert(
+            0, importlib.machinery.FileFinder.path_hook(loader_details)
+        )
         sys.path.insert(0, os.path.abspath(self.mod_dir))
 
         self._clear_caches()
-        logger.debug("Exit ImportManager.install_hooks")
+        # logger.debug("Exit ImportManager.install_hooks")
 
     def remove_hooks(self) -> None:
         logger.debug("In ImportManager.remove_hooks")

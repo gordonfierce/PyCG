@@ -49,8 +49,7 @@ class KeyErrProcessor(ProcessingBase):
         modules_analyzed: Set[str],
     ) -> None:
         logger.debug(
-            "In KeyErrProcessor.__init..: filename: %s; mod_name: %s; analyzed module: %s"
-            % (filename, modname, modules_analyzed)
+            f"In KeyErrProcessor.__init..: filename: {filename}; mod_name: {modname}; analyzed module: {modules_analyzed}"
         )
         super().__init__(filename, modname, modules_analyzed)
         # parent directory of file
@@ -80,10 +79,13 @@ class KeyErrProcessor(ProcessingBase):
                 splitted = name.split(".")
 
                 self.key_errs.add(
-                    filename=os.path.relpath(self.filename, self.import_manager.get_mod_dir()),
+                    filename=os.path.relpath(
+                        self.filename, self.import_manager.get_mod_dir()
+                    ),
                     lineno=node.lineno,
                     namespace=".".join(splitted[:-1]),
-                    key=splitted[-1])
+                    key=splitted[-1],
+                )
         logger.debug("Exit KeyErrProcessor.visit_Subscript")
 
     def is_subscriptable(self, name):
@@ -96,9 +98,15 @@ class KeyErrProcessor(ProcessingBase):
 
     def analyze_submodules(self) -> None:
         logger.debug("In KeyErrProcessor.analyze_submodules")
-        super().analyze_submodules(KeyErrProcessor, self.import_manager,
-                self.scope_manager, self.def_manager, self.class_manager,
-                self.key_errs, modules_analyzed=self.get_modules_analyzed())
+        super().analyze_submodules(
+            KeyErrProcessor,
+            self.import_manager,
+            self.scope_manager,
+            self.def_manager,
+            self.class_manager,
+            self.key_errs,
+            modules_analyzed=self.get_modules_analyzed(),
+        )
         logger.debug("Exit KeyErrProcessor.analyze_submodules")
 
     def analyze(self) -> None:
@@ -111,7 +119,7 @@ class KeyErrProcessor(ProcessingBase):
         logger.debug("In KeyErrProcessor.visit_Lambda")
         counter = self.scope_manager.get_scope(self.current_ns).inc_lambda_counter()
         lambda_name = utils.get_lambda_name(counter)
-        lambda_fullns = utils.join_ns(self.current_ns, lambda_name)
+        utils.join_ns(self.current_ns, lambda_name)
 
         super().visit_Lambda(node, lambda_name)
         logger.debug("Exit KeyErrProcessor.visit_Lambda")

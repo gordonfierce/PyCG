@@ -48,11 +48,11 @@ class ModuleManager:
             return self.external[name]
 
     def get_internal_modules(self):
-        logger.debug("In ModuleManager.get_internal_modules")
+        # logger.debug("In ModuleManager.get_internal_modules")
         return self.internal
 
     def get_external_modules(self):
-        logger.debug("In ModuleManager.get_external_modules")
+        # logger.debug("In ModuleManager.get_external_modules")
         return self.external
 
 
@@ -74,7 +74,7 @@ class Module:
         return self.filename
 
     def get_methods(self):
-        logger.debug("In Module.get_methods")
+        # logger.debug("In Module.get_methods")
         return self.methods
 
     def add_method(

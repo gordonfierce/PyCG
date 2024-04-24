@@ -26,23 +26,23 @@ logger = logging.getLogger(__name__)
 
 class Pointer:
     def __init__(self) -> None:
-        #logger.debug("In Pointer.__ini__")
+        # logger.debug("In Pointer.__ini__")
         self.values = set()
 
     def add(self, item):
-        #logger.debug("In Pointer.add")
+        # logger.debug("In Pointer.add")
         self.values.add(item)
 
     def add_set(self, s: set):
-        #logger.debug("In Pointer.add_set")
+        # logger.debug("In Pointer.add_set")
         self.values.update(s)
 
     def get(self):
-        #logger.debug("In Pointer.get")
+        # logger.debug("In Pointer.get")
         return self.values
 
     def merge(self, pointer):
-        #logger.debug("In Pointer.merge")
+        # logger.debug("In Pointer.merge")
         self.values.update(pointer.values)
 
 
@@ -54,7 +54,7 @@ class LiteralPointer(Pointer):
 
     # no need to add the actual item
     def add(self, item):
-        #logger.debug("In LiteralPointer.add")
+        # logger.debug("In LiteralPointer.add")
         if isinstance(item, str):
             self.values.add(item)
         elif isinstance(item, int):
@@ -135,22 +135,22 @@ class NamePointer(Pointer):
         self.add_lit_arg(name, item)
 
     def get_pos_arg(self, pos):
-        #logger.debug("In NamePointer.get_pos_arg")
-        pos = self._sanitize_pos(pos)
+        # logger.debug("In NamePointer.get_pos_arg")
+
         name = self.pos_to_name.get(pos, None)
         return self.get_arg(name)
 
     def get_arg(self, name):
-        #logger.debug("In NamePointer.get_arg")
+        # logger.debug("In NamePointer.get_arg")
         if self.args.get(name, None):
             return self.args[name]
 
     def get_args(self):
-        #logger.debug("In NamePointer.get_args")
+        # logger.debug("In NamePointer.get_args")
         return self.args
 
     def get_pos_args(self):
-        #logger.debug("In NamePointer.get_pos_args")
+        # logger.debug("In NamePointer.get_pos_args")
         args = {}
         for pos, name in self.pos_to_name.items():
             args[pos] = self.args[name]
