@@ -67,6 +67,8 @@ class CallGraphProcessor(ProcessingBase):
 
         self.closured = self.def_manager.transitive_closure()
 
+        breakpoint()
+
         logger.debug("Exit CallGraphProcessor.__init__")
 
     def visit_Module(self, node: ast.Module):

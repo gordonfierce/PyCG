@@ -20,7 +20,7 @@
 #
 import ast
 import logging
-from typing import Set, Optional
+from typing import Set, List
 
 from pycg import utils
 from pycg.machinery.definitions import Definition, DefinitionManager
@@ -60,9 +60,9 @@ class PreProcessor(ProcessingBase):
         self.module_manager = module_manager
         # logger.debug("Exit PreProcessor.__init__")
 
-    def _get_fun_defaults(self, node):
+    def _get_fun_defaults(self, node: ast.FunctionDef):
         # logger.debug("In PreProcessor._get_fun_defaults")
-        defaults = {}
+        defaults: Dict[str, List[Definition]] = {}
         start = len(node.args.args) - len(node.args.defaults)
         for cnt, d in enumerate(node.args.defaults, start=start):
             if not d:
@@ -277,7 +277,7 @@ class PreProcessor(ProcessingBase):
         self.visit_Import(node, prefix=node.module, level=node.level)
         # logger.debug("Exit PreProcessor.visit_ImportFrom")
 
-    def _get_last_line(self, node):
+    def _get_last_line(self, node: ast.AST) -> int:
         # logger.debug("In PreProcessor._get_last_line")
         lines = sorted(
             ast.walk(node),
@@ -367,16 +367,16 @@ class PreProcessor(ProcessingBase):
                         else:
                             arg_def.merge(default)
                     else:
-                        arg_def.get_lit_pointer().add(default)
+                        arg_def.literal_pointer.add(default)
         # logger.debug("Exit PreProcessor._handle_function_def")
         return fn_def
 
-    def visit_AsyncFunctionDef(self, node):
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
         # logger.debug("In PreProcessor.visit_AsyncFunctionDef")
         self.visit_FunctionDef(node)
         # logger.debug("Exit PreProcessor.visit_AsyncFunctionDef")
 
-    def visit_FunctionDef(self, node):
+    def visit_FunctionDef(self, node: ast.FunctionDef):
         # logger.debug("In PreProcessor.visit_FunctionDef")
         self._handle_function_def(node, node.name)
 

@@ -3,3 +3,4 @@
 micro-benchmark/*_test.py
 micro-benchmark-key-errs/*_test.py
 .direnv/
+mypyreport

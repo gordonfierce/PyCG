@@ -88,9 +88,11 @@ class DefinitionManager:
         return defi
 
     def transitive_closure(self) -> Dict[str, Set[str]]:
+        logger.info("Calling transitive_closure")
+
         closured: Dict[str, Set[str]] = {}
 
-        def dfs(defi: Definition):
+        def dfs(defi: Definition) -> Set[str]:
             if defi.fullns in closured:
                 return closured[defi.fullns]
             name_pointer = defi.name_pointer
@@ -118,10 +120,11 @@ class DefinitionManager:
 
         return closured
 
-    def complete_definitions(self):
+    def complete_definitions(self) -> None:
+        logger.info("Calling complete_definitions")
         # THE MOST expensive part of this tool's process
         # TODO: IMPROVE COMPLEXITY
-        def update_pointsto_args(pointsto_args, arg, name: str):
+        def update_pointsto_args(pointsto_args: Set[str], arg: Set[str], name: str) -> bool:
             changed_something = False
             if arg == pointsto_args:
                 return False
@@ -139,7 +142,7 @@ class DefinitionManager:
                     arg.remove(pointsto_arg)
 
                 for item in arg:
-                    if item not in pointsto_arg_def.get():
+                    if item not in pointsto_arg_def.values:
                         if self.defs.get(item, None) is not None:
                             changed_something = True
                     # HACK: this check shouldn't be needed
@@ -153,18 +156,18 @@ class DefinitionManager:
             return changed_something
 
         logger.info("Def-Iterating %d defs" % len(self.defs))
-        if len(self.defs) > 9000:
-            logger.info(
-                "The definition list is too large. This is likely to take forever. Avoid this step"
-            )
-            return
+        # if len(self.defs) > 10000:
+        #     logger.info(
+        #         "The definition list is too large. This is likely to take forever. Avoid this step"
+        #     )
+        #     return
 
         for i in range(len(self.defs)):
             logger.info("Def-idx-%d" % (i))
             changed_something = False
             for ns, current_def in self.defs.items():
                 # the name pointer of the definition we're currently iterating
-                current_name_pointer: NamePointer = current_def.name_pointer
+                current_name_pointer = current_def.name_pointer
                 # print("Name point: %s"%(str(current_name_pointer)))
                 # iterate the names the current definition points to items
                 # for name in current_name_pointer.get():
@@ -172,13 +175,13 @@ class DefinitionManager:
                     if name == ns:
                         continue
                     # get the name pointer of the points to name
-                    if not self.defs.get(name, None):
+                    if name not in self.defs:
                         continue
 
-                    pointsto_name_pointer: NamePointer = self.defs[name].name_pointer
+                    pointsto_name_pointer = self.defs[name].name_pointer
                     # iterate the arguments of the definition we're currently iterating
                     for arg_name, arg in current_name_pointer.args.items():
-                        pos = current_name_pointer.get_pos_of_name(arg_name)
+                        pos = current_name_pointer.name_to_pos.get(arg_name)
                         if pos is not None:
                             pointsto_args = pointsto_name_pointer.get_pos_arg(pos)
                             if not pointsto_args:

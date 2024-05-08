@@ -19,7 +19,7 @@
 # under the License.
 #
 import logging
-from typing import Dict, Optional, Set
+from typing import Dict, Optional, Set, Union
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class Pointer:
         # logger.debug("In Pointer.__ini__")
         self.values = set()
 
-    def add(self, item):
+    def add(self, item: str):
         # logger.debug("In Pointer.add")
         self.values.add(item)
 
@@ -65,6 +65,7 @@ class LiteralPointer(Pointer):
 
 class NamePointer(Pointer):
     __slots__ = ["pos_to_name", "name_to_pos", "args", "values"]
+    values: Set[str]
 
     def __init__(self) -> None:
         # logger.debug("In NamePointer.__init__")
@@ -72,6 +73,23 @@ class NamePointer(Pointer):
         self.pos_to_name: Dict[int, str] = {}
         self.name_to_pos: Dict[str, int] = {}
         self.args: Dict[str, Set[str]] = {}
+
+    def __repr__(self):
+        return f"<NamePointer pos_to_name={self.pos_to_name} name_to_pos={self.name_to_pos}, args={self.args}, values={self.values}>"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, NamePointer):
+            return NotImplemented
+        return (self.pos_to_name == other.pos_to_name and
+                self.name_to_pos == other.name_to_pos and
+                self.args == other.args and
+                self.values == other.values)
+
+    def __hash__(self) -> int:
+        # Create a hash based on a tuple of the hashes of the frozen contents of attributes.
+        # This is a simple approach and might need to be adjusted for performance considerations.
+        return hash((frozenset(self.pos_to_name.items()), frozenset(self.name_to_pos.items()), 
+                     frozenset((k, frozenset(v)) for k, v in self.args.items())))
 
     def _sanitize_pos(self, pos) -> int:
         # logger.debug("In NamePointer._sanitize_pos")
@@ -88,7 +106,7 @@ class NamePointer(Pointer):
             self.args[name] = set()
         return self.args[name]
 
-    def add_arg(self, name: str, item) -> None:
+    def add_arg(self, name: str, item: Union[str, Set[str]]) -> None:
         # logger.debug("In NamePointer.add_arg")
         arg = self.get_or_create(name)
         if isinstance(item, str):
@@ -108,7 +126,7 @@ class NamePointer(Pointer):
         else:
             arg.add(LiteralPointer.UNK_LIT)
 
-    def add_pos_arg(self, pos, name: Optional[str], item):
+    def add_pos_arg(self, pos: int, name: Optional[str], item):
         # logger.debug("In NamePointer.add_pos_arg")
         pos = self._sanitize_pos(pos)
         if not name:
@@ -125,7 +143,7 @@ class NamePointer(Pointer):
         # logger.debug("In NamePointer.add_name_arg")
         self.add_arg(name, item)
 
-    def add_pos_lit_arg(self, pos, name: str, item):
+    def add_pos_lit_arg(self, pos: int, name: str, item):
         # logger.debug("In NamePointer.add_pos_lit_arg")
         pos = self._sanitize_pos(pos)
         if not name:
@@ -134,16 +152,16 @@ class NamePointer(Pointer):
         self.name_to_pos[name] = pos
         self.add_lit_arg(name, item)
 
-    def get_pos_arg(self, pos):
+    def get_pos_arg(self, pos: int):
         # logger.debug("In NamePointer.get_pos_arg")
 
-        name = self.pos_to_name.get(pos, None)
-        return self.get_arg(name)
+        name = self.pos_to_name.get(pos)
+        if name:
+            return self.args.get(name)
 
     def get_arg(self, name):
         # logger.debug("In NamePointer.get_arg")
-        if self.args.get(name, None):
-            return self.args[name]
+        return self.args.get(name)
 
     def get_args(self):
         # logger.debug("In NamePointer.get_args")
